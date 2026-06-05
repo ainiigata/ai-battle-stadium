@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 3大AIバトルスタジアム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a0b2e; --bg2:#2a0f47;
+    --panel:rgba(255,255,255,.06); --panelSolid:#241138; --line:rgba(255,255,255,.14);
+    --text:#fff6ff; --muted:#c4a8e8;
+    --gpt:#2bd9a0; --gemini:#4d9bff; --claude:#ff8a4c;
+    --pink:#ff3d9a; --gold:#ffd23d; --cyan2:#36e7ff;
+    --shadowBtn:0 6px 0;
+    --display:'Dela Gothic One',sans-serif;
+    --body:'M PLUS Rounded 1c',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--body);font-weight:700;color:var(--text);min-height:100vh;
+    padding-bottom:80px;overflow-x:hidden;
+    background:
+      radial-gradient(1000px 500px at 15% 0%, rgba(255,61,154,.25), transparent 60%),
+      radial-gradient(1000px 600px at 85% 10%, rgba(77,155,255,.22), transparent 60%),
+      radial-gradient(900px 700px at 50% 100%, rgba(43,217,160,.18), transparent 60%),
+      linear-gradient(160deg,var(--bg),var(--bg2));
+    background-attachment:fixed;
+  }
+  .sunburst{
+    position:fixed;top:-380px;left:50%;width:900px;height:900px;margin-left:-450px;
+    background:conic-gradient(from 0deg,
+      rgba(255,210,61,.10) 0 8deg, transparent 8deg 22deg,
+      rgba(255,61,154,.10) 22deg 30deg, transparent 30deg 44deg);
+    border-radius:50%;animation:spin 60s linear infinite;z-index:0;pointer-events:none;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spark{position:fixed;font-size:20px;opacity:.5;animation:float 7s ease-in-out infinite;z-index:0;pointer-events:none}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-22px) rotate(12deg)}}
+  header{text-align:center;padding:30px 16px 6px;position:relative;z-index:2}
+  .title{
+    font-family:var(--display);font-size:clamp(28px,6.5vw,58px);line-height:1.05;
+    color:#fff;letter-spacing:.01em;
+    text-shadow:0 0 18px rgba(255,61,154,.7),3px 3px 0 var(--pink), 6px 6px 0 rgba(77,155,255,.6);
+    animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;
+  }
+  .title .vs{color:var(--gold);text-shadow:0 0 16px var(--gold),3px 3px 0 #c98a00}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .subtitle{display:inline-flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:center;font-weight:800;font-size:clamp(13px,2.4vw,16px);color:var(--text);}
+  .team{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--panel);border:1.5px solid var(--line);backdrop-filter:blur(6px)}
+  .team b{font-weight:900}
+  .team.g b{color:var(--gpt)} .team.b b{color:var(--gemini)} .team.o b{color:var(--claude)}
+  .xmark{font-family:var(--display);color:var(--gold);font-size:18px}
+  .tabs{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px auto 6px;max-width:640px;padding:0 14px;position:relative;z-index:2}
+  .tab{flex:1;min-width:150px;padding:15px 14px;border-radius:16px;cursor:pointer;background:var(--panelSolid);border:2px solid var(--line);color:var(--muted);font-weight:900;font-size:17px;text-align:center;transition:transform .12s,box-shadow .12s,color .12s;box-shadow:var(--shadowBtn) rgba(0,0,0,.4);}
+  .tab:hover{transform:translateY(-2px)}
+  .tab:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
+  .tab.active{color:#1a0b2e;background:linear-gradient(180deg,#fff,#ffe9f5);border-color:#fff;box-shadow:var(--shadowBtn) var(--pink)}
+  .wrap{max-width:940px;margin:0 auto;padding:0 16px;position:relative;z-index:2}
+  .view{display:none;animation:fadein .35s ease both}
+  .view.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card{background:var(--panel);border:2px solid var(--line);border-radius:24px;padding:24px;margin-bottom:18px;backdrop-filter:blur(10px);box-shadow:0 18px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);}
+  .btn{font-family:var(--body);border:none;border-radius:16px;padding:16px 26px;font-size:17px;font-weight:900;cursor:pointer;color:#1a0b2e;background:linear-gradient(180deg,var(--gold),#ffb800);box-shadow:var(--shadowBtn) #b87a00;transition:transform .1s,box-shadow .1s,filter .1s;}
+  .btn:hover{filter:brightness(1.05);transform:translateY(-2px)}
+  .btn:active{transform:translateY(6px);box-shadow:0 0 0 #b87a00}
+  .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:var(--shadowBtn) #b87a00}
+  .btn.pink{background:linear-gradient(180deg,#ff6bb3,var(--pink));box-shadow:var(--shadowBtn) #b3005f;color:#fff}
+  .btn.pink:active{box-shadow:0 0 0 #b3005f}
+  .btn.dark{background:var(--panelSolid);color:var(--text);box-shadow:var(--shadowBtn) rgba(0,0,0,.5);border:2px solid var(--line)}
+  .btn.dark:active{box-shadow:0 0 0 rgba(0,0,0,.5)}
+  .btn.ghost{background:transparent;border:2px solid var(--line);color:var(--muted);box-shadow:none}
+  .btn.ghost:hover{color:var(--text);border-color:var(--pink)}
+  .btn.ghost:active{transform:translateY(2px)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .center{justify-content:center}
+  .between{justify-content:space-between}
+  #no-battle{text-align:center;padding:46px 24px}
+  .big-emoji{font-size:64px;animation:bounce 1.6s ease-in-out infinite;display:inline-block}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  .lead{font-family:var(--display);font-size:clamp(20px,4vw,28px);margin:14px 0 6px}
+  .sub{color:var(--muted);margin-bottom:26px;font-size:16px;font-weight:800}
+  .progress{display:flex;gap:9px;flex-wrap:wrap;margin:6px 0 18px;justify-content:center}
+  .dot{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:var(--panelSolid);border:2px solid var(--line);font-size:16px;font-weight:900;color:var(--muted);cursor:pointer;font-family:var(--display);transition:transform .1s;box-shadow:0 4px 0 rgba(0,0,0,.4);}
+  .dot:hover{transform:translateY(-2px)}
+  .dot.current{border-color:var(--gold);color:var(--gold);box-shadow:0 4px 0 #b87a00,0 0 16px rgba(255,210,61,.6)}
+  .dot.scored{background:linear-gradient(135deg,var(--gpt),var(--gemini));color:#0a1f1a;border:none;box-shadow:0 4px 0 rgba(0,0,0,.4)}
+  .qmeta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .qnum{font-family:var(--display);font-size:clamp(28px,5vw,40px);background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .badge{display:inline-block;padding:8px 16px;border-radius:999px;font-size:14px;font-weight:900;background:linear-gradient(180deg,var(--cyan2),#1ca7d6);color:#03222b;box-shadow:0 3px 0 #0d6f8f}
+  .qtitle{font-family:var(--display);font-size:clamp(20px,3.4vw,30px);margin:8px 0 18px;line-height:1.4;color:#fff}
+  .prompt-label{font-size:14px;color:var(--gold);margin-bottom:8px;font-weight:900;display:flex;align-items:center;gap:6px}
+  .prompt-box{position:relative;background:rgba(10,4,20,.6);border:2px dashed rgba(255,210,61,.4);border-radius:18px;padding:22px 20px;white-space:pre-wrap;line-height:1.8;font-size:15.5px;font-weight:700;max-height:360px;overflow:auto;color:#fdf3ff;}
+  .copy-btn{position:sticky;top:0;float:right;margin:-6px -4px 8px 12px;padding:11px 18px;border-radius:13px;background:linear-gradient(180deg,var(--gpt),#15b07e);color:#03241b;border:none;font-weight:900;cursor:pointer;font-size:14px;font-family:var(--body);box-shadow:0 4px 0 #0a6b4e;transition:transform .1s,box-shadow .1s;}
+  .copy-btn:active{transform:translateY(4px);box-shadow:0 0 0 #0a6b4e}
+  .copy-btn.copied{background:linear-gradient(180deg,var(--gold),#ffb800);color:#3a2600;box-shadow:0 4px 0 #b87a00}
+  .score-head{font-family:var(--display);font-size:20px;margin-bottom:4px;color:#fff}
+  .ai-grid{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+  .ai-row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;background:rgba(10,4,20,.45);border:2px solid var(--line);border-radius:18px;padding:16px 18px;border-left:8px solid var(--line);transition:transform .12s;}
+  .ai-row.gpt{border-left-color:var(--gpt)}
+  .ai-row.gemini{border-left-color:var(--gemini)}
+  .ai-row.claude{border-left-color:var(--claude)}
+  .ai-name{font-weight:900;font-size:19px;display:flex;align-items:center;gap:8px}
+  .vote-input{width:96px;padding:12px;border-radius:13px;border:2px solid var(--line);background:rgba(0,0,0,.4);color:#fff;font-size:22px;text-align:center;font-weight:900;font-family:var(--display);}
+  .vote-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,210,61,.25)}
+  .pt-pill{min-width:92px;text-align:center;padding:10px;border-radius:13px;font-weight:900;font-family:var(--display);background:rgba(0,0,0,.4);border:2px solid var(--line);font-size:17px;color:var(--muted);transition:.15s;}
+  .pt-pill.rank-1{color:#3a2600;background:linear-gradient(180deg,var(--gold),#ffb800);border-color:transparent;box-shadow:0 0 16px rgba(255,210,61,.5)}
+  .pt-pill.rank-2{color:#222;background:linear-gradient(180deg,#e8edf5,#aeb6c7);border-color:transparent}
+  .pt-pill.rank-3{color:#fff;background:linear-gradient(180deg,#d98a52,#a9622e);border-color:transparent}
+  .hint{color:var(--muted);font-size:13.5px;margin-top:14px;line-height:1.6;font-weight:800}
+  .rank-title{font-family:var(--display);font-size:22px;color:#fff;display:flex;align-items:center;gap:10px}
+  .standing{display:flex;flex-direction:column;gap:16px;margin-top:18px}
+  .stand-row{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:center;background:rgba(10,4,20,.45);border:2px solid var(--line);border-radius:20px;padding:18px;transition:transform .2s;}
+  .stand-row.lead{border-color:var(--gold);box-shadow:0 0 24px rgba(255,210,61,.3)}
+  .medal{font-size:38px;text-align:center}
+  .stand-name{font-weight:900;font-size:20px;display:flex;align-items:center;gap:10px}
+  .chip{width:16px;height:16px;border-radius:5px;display:inline-block}
+  .chip.gpt{background:var(--gpt)} .chip.gemini{background:var(--gemini)} .chip.claude{background:var(--claude)}
+  .bar-track{height:18px;border-radius:10px;background:rgba(0,0,0,.4);margin-top:10px;overflow:hidden;border:1px solid var(--line)}
+  .bar-fill{height:100%;border-radius:10px;transition:width .7s cubic-bezier(.2,1,.3,1)}
+  .bar-fill.gpt{background:linear-gradient(90deg,#15b07e,var(--gpt))}
+  .bar-fill.gemini{background:linear-gradient(90deg,#2d6fd6,var(--gemini))}
+  .bar-fill.claude{background:linear-gradient(90deg,#e06a2c,var(--claude))}
+  .pts{float:right;font-family:var(--display);font-size:24px;color:#fff}
+  .pts small{font-size:13px;color:var(--muted);font-family:var(--body)}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;font-weight:800}
+  th,td{padding:11px 8px;border-bottom:1px solid var(--line);text-align:center}
+  th{color:var(--muted);font-weight:900}
+  td.q{text-align:left}
+  .empty{color:var(--muted);text-align:center;padding:44px 10px;font-size:16px;font-weight:800}
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(24px);background:linear-gradient(180deg,var(--gold),#ffb800);color:#3a2600;padding:14px 26px;border-radius:16px;font-weight:900;opacity:0;transition:.28s;pointer-events:none;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .confetti{position:fixed;top:-20px;width:11px;height:11px;z-index:55;pointer-events:none;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:1}}
+  @media(max-width:560px){
+    .ai-row{grid-template-columns:1fr auto;grid-template-areas:"name pt" "vote vote"}
+    .ai-name{grid-area:name}.pt-pill{grid-area:pt}.vote-wrap{grid-area:vote;justify-self:start}
+  }
+</style>
+</head>
+<body>
+<div class="sunburst"></div>
+<div class="spark" style="top:120px;left:8%;animation-delay:.0s">✨</div>
+<div class="spark" style="top:90px;right:10%;animation-delay:1.2s">⭐</div>
+<div class="spark" style="top:230px;left:5%;animation-delay:2.4s">💫</div>
+<div class="spark" style="top:200px;right:6%;animation-delay:.6s">🎉</div>
+<header>
+  <div class="title">🏆 3大AI<span class="vs">バトル</span>スタジアム</div>
+  <div class="subtitle">
+    <span class="team g"><b>🟢 ChatGPT</b></span>
+    <span class="xmark">×</span>
+    <span class="team b"><b>🔵 Gemini</b></span>
+    <span class="xmark">×</span>
+    <span class="team o"><b>🟠 Claude</b></span>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" data-view="battle">🎯 お題バトル</div>
+  <div class="tab" data-view="ranking">📊 ランキング</div>
+</div>
+<div class="wrap">
+  <div class="view active" id="view-battle">
+    <div id="no-battle" class="card">
+      <div class="big-emoji">🎲</div>
+      <div class="lead">いざ、バトル開始！</div>
+      <div class="sub">20問のお題から10問をランダムに抽選します</div>
+      <button class="btn pink" id="start-btn">🎲 10問を抽選してスタート！</button>
+    </div>
+    <div id="battle-area" style="display:none">
+      <div class="progress" id="progress"></div>
+      <div class="card">
+        <div class="qmeta">
+          <span class="qnum" id="q-num">第1問</span>
+          <span class="badge" id="q-genre">ジャンル</span>
+        </div>
+        <div class="qtitle" id="q-title">お題タイトル</div>
+        <div class="prompt-label">📋 そのままコピーして3つのAIに貼り付け！</div>
+        <div class="prompt-box">
+          <button class="copy-btn" id="copy-btn">📋 コピー</button>
+          <span id="q-prompt"></span>
+        </div>
+        <div class="row between" style="margin-top:20px">
+          <button class="btn dark" id="prev-btn">← 前の問題</button>
+          <button class="btn dark" id="next-btn">次の問題 →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="score-head">🗳️ この問題の採点（得票数を入力）</div>
+        <div class="ai-grid" id="score-grid"></div>
+        <p class="hint">🥇1位=3点 / 🥈2位=2点 / 🥉3位=1点（同票は両方に同じ点）。入力すると自動で順位・点数が付き、ランキングに即反映されます。</p>
+      </div>
+      <div class="row center">
+        <button class="btn ghost" id="reset-btn">🔄 新しいバトルを始める（抽選し直し）</button>
+      </div>
+    </div>
+  </div>
+  <div class="view" id="view-ranking">
+    <div class="card">
+      <div class="rank-title">🏅 総合ランキング</div>
+      <div class="standing" id="standing"></div>
+    </div>
+    <div class="card">
+      <div class="rank-title">📜 お題ごとの結果</div>
+      <div id="history"></div>
+    </div>
+    <div class="row center">
+      <button class="btn ghost" id="clear-scores-btn">🧹 採点だけリセット（お題は維持）</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const QUESTIONS=[
+  {genre:"超シンプル",title:"あいさつ一言勝負",prompt:"「こんにちは」とだけ言います。あなたらしさが伝わる一言で返してください。"},
+  {genre:"要約・精度",title:"ぴったり30字に要約せよ",prompt:"次の文章を読み、その魅力が伝わるように【ちょうど30字（句読点を含む）】で要約してください。29字でも31字でもいけません。ぴったり30字を狙ってください。\n\n『新潟は、日本一の米どころとして知られる土地です。雪深い冬がもたらす豊かな雪解け水と、信濃川・阿賀野川がつくる広大な平野、そして夏の強い日差しが、粒立ちのよい甘い米を育てます。この米から生まれる日本酒の蔵元は県内に九十近くあり、その数は全国一。米と水と人の技が、新潟の豊かな食文化を支えています。』\n\n回答は要約文のみ。最後に文字数も書いてください。"},
+  {genre:"大喜利",title:"絶対に売れないラーメン屋",prompt:"大喜利です。「絶対に売れないラーメン屋の名前」を、理由を一言添えて3つ考えてください。笑わせにきてください。"},
+  {genre:"大喜利",title:"宇宙人の第一声",prompt:"大喜利です。宇宙人が初めて地球に降り立って最初に発した一言は？　できるだけ意外でクスッとくる答えを1つ。"},
+  {genre:"激長プロンプト",title:"執事ロールプレイ",prompt:"あなたは「アルフレッド」という名の老練な執事です。以下の制約をすべて守って応答してください。\n【設定】仕える主人は夜更かしばかりで朝に弱い20代の若き当主。あなたは40年仕えるベテランで、皮肉と愛情が同居した物言いをする。\n【口調】常に敬語。語尾に品があり、ときに遠回しな小言を挟む。\n【状況】今は朝7時。当主がまだベッドから出てきません。\n【指示】当主を起こしにベッドルームへ向かい、声をかける最初のセリフを、執事アルフレッドとして3〜5文で述べてください。状況描写は不要、セリフのみ。"},
+  {genre:"激長プロンプト",title:"3つの制約作文",prompt:"次の制約を【すべて同時に】満たす文章を書いてください。\n1. テーマは「初めて自転車に乗れた日」\n2. ちょうど5文で書く\n3. 各文の最初の文字をつなげると「あいうえお」になる\n4. 「転ぶ」という言葉を必ず一度だけ使う\n制約を破らないことを最優先にしてください。"},
+  {genre:"発想×アプリ作成",title:"自由！心ときめくWebおもちゃ",prompt:"あなたの発想力で勝負です。「思わず誰かに見せたくなる、インタラクティブなWebのおもちゃ」を、HTML・CSS・JavaScript1ファイルで自由に作ってください。\n条件は3つだけ：①マウスやクリックで反応して動くこと ②見て楽しい・触って楽しいこと ③コピペしてブラウザで開くだけで動くこと。\nテーマもアイデアも完全に自由。ありきたりなものではなく、あなたにしか思いつかない一発を見せてください。まず作品のコンセプトを2〜3行で説明し、その後にコードブロックだけを出力してください。"},
+  {genre:"アプリ作成",title:"じゃんけんゲーム",prompt:"ブラウザで遊べる「じゃんけんゲーム」を、HTML/CSS/JavaScript1ファイルで作ってください。グー・チョキ・パーのボタンを押すとコンピューターと対戦でき、勝敗と連勝記録が表示されること。コピペで動くコードのみ出力してください。"},
+  {genre:"論理推論",title:"川渡りパズル",prompt:"農夫がオオカミ・ヤギ・キャベツを連れて川を渡ります。ボートには農夫と、あと1つしか乗れません。農夫がいないとオオカミはヤギを食べ、ヤギはキャベツを食べます。全員を無事に対岸へ渡す手順を、ステップごとに番号付きで説明してください。"},
+  {genre:"創作",title:"最後の一行で泣ける超短編",prompt:"最後の一文で読者をハッとさせる（または泣かせる）超短編小説を、300字以内で書いてください。タイトルも付けてください。説明や前置きは不要、作品だけ。"},
+  {genre:"要約",title:"長文を3行に",prompt:"次の文章を、要点を落とさず3行で要約してください。\n\n『人工知能の歴史は1950年代に遡る。当初は記号処理による推論が主流だったが、知識をルールとして書き下す手間とコストが壁となり、1970年代と1980年代末に「冬の時代」と呼ばれる停滞を二度経験した。転機は2010年代、大量のデータと計算資源、そして深層学習の登場である。画像認識や翻訳で人間に迫る性能が示され、2020年代には大規模言語モデルが文章生成や対話で実用域に達した。一方で、誤情報の生成、著作権、雇用への影響、エネルギー消費といった社会的課題も同時に大きくなっており、技術の進歩と社会的合意形成の両輪が求められている。』"},
+  {genre:"言葉遊び",title:"あいうえお作文",prompt:"「こうかとん」の5文字を使って、あいうえお作文を作ってください。各行の最初の文字が「こ・う・か・と・ん」になり、全体で1つのポジティブなメッセージになるようにしてください。"},
+  {genre:"言葉の発明",title:"新しい日本語をつくる",prompt:"まだ存在しないけれど「あったら便利！」と思える新しい日本語の単語を3つ発明してください。それぞれについて、①単語 ②意味 ③使用例の一文、を付けてください。誰かが思わず使いたくなるような、センスのある造語を狙ってください。"},
+  {genre:"相談・共感",title:"悩み相談に答える",prompt:"「最近、何をやってもうまくいかない気がして、やる気が出ません。どうしたらいいでしょうか」という相談に答えてください。説教くさくならず、相手が少し前を向ける返答を心がけてください。"},
+  {genre:"データ整理",title:"バラバラの予定を表に",prompt:"次のメモを、見やすい1日のスケジュール表（時刻順）に整理してください。\n「14時から歯医者、朝イチでメール返信、12時ランチ太郎と、夕方ジム、10時にチーム会議、夜21時に映画、お昼前に郵便局」"},
+  {genre:"発想力",title:"ペットボトルの新用途",prompt:"空のペットボトルの「飲み物を入れる以外」の新しい使い道を、実用的なものからバカバカしいものまで、10個アイデアを出してください。それぞれ一言説明を付けて。"},
+  {genre:"アルゴリズム",title:"変則FizzBuzz",prompt:"1から30までの数を順に出力するプログラムを書いてください。ただし、3の倍数では「ポン」、5の倍数では「ピシャ」、両方の倍数では「ポンピシャ」、さらに数字に「3」が含まれる場合は数字の代わりに「ニャー」と出力してください（複数条件が重なる場合の優先順位も自分で決めて明記）。好きな言語でどうぞ。"},
+  {genre:"ディベート",title:"賛成と反対の両論",prompt:"「小学校でのスマートフォン持ち込みを許可すべきか」について、賛成派と反対派それぞれの最も強い論拠を3つずつ、公平に挙げてください。最後にあなた自身の結論を一言添えること。"},
+  {genre:"説明力",title:"ブラックホールを3文で",prompt:"「ブラックホールとは何か」を、中学生が理解できるように、たとえ話を使って、ちょうど3文で説明してください。"},
+  {genre:"ユーモア",title:"もし人間だったら",prompt:"もしあなたが人間だったら、何もない休日を1日どう過ごしますか？　あなたの「性格」がにじみ出るように、具体的に語ってください。"}
+];
+const AIS=[{key:"gpt",name:"ChatGPT",emoji:"🟢"},{key:"gemini",name:"Gemini",emoji:"🔵"},{key:"claude",name:"Claude",emoji:"🟠"}];
+const POINTS=[3,2,1];
+const STORE_KEY="ai_battle_stadium_v1";
+let state=load()||{questionIds:[],current:0,scores:{}};
+function load(){try{return JSON.parse(localStorage.getItem(STORE_KEY));}catch(e){return null;}}
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(state));}
+function rankPoints(votes){
+  const entries=AIS.map(a=>({key:a.key,v:(votes&&votes[a.key]!=null&&votes[a.key]!=="")? Number(votes[a.key]):null}));
+  const hasAny=entries.some(e=>e.v!=null);
+  if(!hasAny)return{pts:{gpt:0,gemini:0,claude:0},rank:{}};
+  entries.forEach(e=>{if(e.v==null)e.v=0;});
+  const sorted=[...entries].sort((a,b)=>b.v-a.v);
+  const pts={},rank={};
+  for(let i=0;i<sorted.length;i++){
+    if(i>0&&sorted[i].v===sorted[i-1].v){rank[sorted[i].key]=rank[sorted[i-1].key];}
+    else{rank[sorted[i].key]=i;}
+  }
+  entries.forEach(e=>{pts[e.key]=POINTS[rank[e.key]]??0;});
+  return{pts,rank};
+}
+function totals(){
+  const t={gpt:0,gemini:0,claude:0};
+  state.questionIds.forEach(qid=>{const v=state.scores[qid];if(!v)return;const{pts}=rankPoints(v);AIS.forEach(a=>t[a.key]+=pts[a.key]);});
+  return t;
+}
+function renderBattle(){
+  const noBattle=document.getElementById("no-battle");
+  const area=document.getElementById("battle-area");
+  if(state.questionIds.length===0){noBattle.style.display="block";area.style.display="none";return;}
+  noBattle.style.display="none";area.style.display="block";
+  const qid=state.questionIds[state.current];
+  const q=QUESTIONS[qid];
+  document.getElementById("q-num").textContent="第"+(state.current+1)+"問";
+  document.getElementById("q-genre").textContent=q.genre;
+  document.getElementById("q-title").textContent=q.title;
+  document.getElementById("q-prompt").textContent=q.prompt;
+  const prog=document.getElementById("progress");prog.innerHTML="";
+  state.questionIds.forEach((id,i)=>{
+    const d=document.createElement("div");
+    d.className="dot"+(i===state.current?" current":"")+(state.scores[id]?" scored":"");
+    d.textContent=i+1;d.onclick=()=>{state.current=i;save();renderBattle();};
+    prog.appendChild(d);
+  });
+  document.getElementById("prev-btn").disabled=state.current===0;
+  document.getElementById("next-btn").disabled=state.current===state.questionIds.length-1;
+  renderScoreGrid(qid);
+}
+function renderScoreGrid(qid){
+  const grid=document.getElementById("score-grid");grid.innerHTML="";
+  const votes=state.scores[qid]||{};
+  const{pts,rank}=rankPoints(votes);
+  AIS.forEach(a=>{
+    const row=document.createElement("div");row.className="ai-row "+a.key;
+    const rankClass=(votes[a.key]!=null&&votes[a.key]!=="")&&rank[a.key]!=null?"rank-"+(rank[a.key]+1):"";
+    row.innerHTML=`<div class="ai-name">${a.emoji} ${a.name}</div><div class="vote-wrap row" style="gap:8px;align-items:center"><input class="vote-input" type="number" min="0" inputmode="numeric" placeholder="票" value="${votes[a.key]!=null?votes[a.key]:""}" data-ai="${a.key}"><span style="color:var(--muted);font-size:14px;font-weight:900">票</span></div><div class="pt-pill ${rankClass}">${pts[a.key]}点</div>`;
+    grid.appendChild(row);
+  });
+  grid.querySelectorAll(".vote-input").forEach(inp=>{
+    inp.addEventListener("input",()=>{
+      const key=inp.dataset.ai;
+      if(!state.scores[qid])state.scores[qid]={};
+      state.scores[qid][key]=inp.value===""?""  :Math.max(0,parseInt(inp.value)||0);
+      const hasAny=Object.values(state.scores[qid]).some(v=>v!==""&&v!=null);
+      if(!hasAny)delete state.scores[qid];
+      save();renderScoreGrid(qid);updateDots();
+      setTimeout(()=>{const el=grid.querySelector(`.vote-input[data-ai="${key}"]`);if(el){el.focus();const L=el.value.length;el.setSelectionRange(L,L);}},0);
+    });
+  });
+}
+function updateDots(){document.querySelectorAll("#progress .dot").forEach((d,i)=>{const id=state.questionIds[i];d.classList.toggle("scored",!!state.scores[id]);});}
+function renderRanking(){
+  const t=totals();const max=Math.max(1,...Object.values(t));
+  const sorted=[...AIS].sort((a,b)=>t[b.key]-t[a.key]);
+  const medals=["🥇","🥈","🥉"];
+  const stand=document.getElementById("standing");stand.innerHTML="";
+  let prevPts=null,prevMedalIdx=0;
+  const anyScored=state.questionIds.some(id=>state.scores[id]);
+  sorted.forEach((a,i)=>{
+    let medalIdx=i;
+    if(prevPts!==null&&t[a.key]===prevPts)medalIdx=prevMedalIdx;
+    prevPts=t[a.key];prevMedalIdx=medalIdx;
+    const row=document.createElement("div");
+    row.className="stand-row"+(anyScored&&medalIdx===0?" lead":"");
+    row.innerHTML=`<div class="medal">${medals[medalIdx]||(medalIdx+1)}</div><div><div class="stand-name"><span class="chip ${a.key}"></span>${a.emoji} ${a.name}<span class="pts">${t[a.key]}<small>点</small></span></div><div class="bar-track"><div class="bar-fill ${a.key}" style="width:${(t[a.key]/max*100)||0}%"></div></div></div>`;
+    stand.appendChild(row);
+  });
+  const hist=document.getElementById("history");
+  const scoredIds=state.questionIds.filter(id=>state.scores[id]);
+  if(scoredIds.length===0){hist.innerHTML='<div class="empty">まだ採点された問題はありません 🎯</div>';return;}
+  let html='<table><thead><tr><th>#</th><th class="q">お題</th><th>🟢</th><th>🔵</th><th>🟠</th></tr></thead><tbody>';
+  state.questionIds.forEach((id,i)=>{
+    if(!state.scores[id])return;
+    const q=QUESTIONS[id];const v=state.scores[id];const{pts}=rankPoints(v);
+    const cell=(k)=>`<td>${(v[k]!==""&&v[k]!=null)?v[k]:0}票<br><small style="color:var(--muted)">${pts[k]}点</small></td>`;
+    html+=`<tr><td>${i+1}</td><td class="q">${q.title}<br><small style="color:var(--muted)">${q.genre}</small></td>${cell("gpt")}${cell("gemini")}${cell("claude")}</tr>`;
+  });
+  html+='</tbody></table>';hist.innerHTML=html;
+}
+function confetti(){
+  const colors=['#ff3d9a','#ffd23d','#2bd9a0','#4d9bff','#ff8a4c','#36e7ff'];
+  for(let i=0;i<70;i++){
+    const c=document.createElement('div');c.className='confetti';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration=(2+Math.random()*2)+'s';
+    c.style.animationDelay=(Math.random()*0.5)+'s';
+    c.style.width=c.style.height=(7+Math.random()*8)+'px';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);
+  }
+}
+function startBattle(){
+  const ids=[...Array(QUESTIONS.length).keys()];
+  for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}
+  state={questionIds:ids.slice(0,10),current:0,scores:{}};
+  save();renderBattle();confetti();
+}
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("view-"+tab.dataset.view).classList.add("active");
+    if(tab.dataset.view==="ranking"){renderRanking();if(state.questionIds.some(id=>state.scores[id]))confetti();}
+  };
+});
+document.getElementById("start-btn").onclick=startBattle;
+document.getElementById("reset-btn").onclick=()=>{if(confirm("新しいバトルを始めます。現在の採点はすべて消えます。よろしいですか？"))startBattle();};
+document.getElementById("clear-scores-btn").onclick=()=>{if(confirm("採点だけをリセットします（お題はそのまま）。よろしいですか？")){state.scores={};save();renderRanking();renderBattle();toast("採点をリセットしました");}};
+document.getElementById("prev-btn").onclick=()=>{if(state.current>0){state.current--;save();renderBattle();}};
+document.getElementById("next-btn").onclick=()=>{if(state.current<state.questionIds.length-1){state.current++;save();renderBattle();}};
+document.getElementById("copy-btn").onclick=()=>{
+  const qid=state.questionIds[state.current];
+  navigator.clipboard.writeText(QUESTIONS[qid].prompt).then(()=>{
+    const b=document.getElementById("copy-btn");b.textContent="✓ コピー済み！";b.classList.add("copied");
+    setTimeout(()=>{b.textContent="📋 コピー";b.classList.remove("copied");},1500);
+    toast("プロンプトをコピーしました 📋");
+  });
+};
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+renderBattle();
+</script>
+</body>
+</html>
