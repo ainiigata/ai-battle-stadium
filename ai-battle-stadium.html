@@ -30,23 +30,12 @@
       linear-gradient(160deg,var(--bg),var(--bg2));
     background-attachment:fixed;
   }
-  .sunburst{
-    position:fixed;top:-380px;left:50%;width:900px;height:900px;margin-left:-450px;
-    background:conic-gradient(from 0deg,
-      rgba(255,210,61,.10) 0 8deg, transparent 8deg 22deg,
-      rgba(255,61,154,.10) 22deg 30deg, transparent 30deg 44deg);
-    border-radius:50%;animation:spin 60s linear infinite;z-index:0;pointer-events:none;
-  }
+  .sunburst{position:fixed;top:-380px;left:50%;width:900px;height:900px;margin-left:-450px;background:conic-gradient(from 0deg,rgba(255,210,61,.10) 0 8deg,transparent 8deg 22deg,rgba(255,61,154,.10) 22deg 30deg,transparent 30deg 44deg);border-radius:50%;animation:spin 60s linear infinite;z-index:0;pointer-events:none;}
   @keyframes spin{to{transform:rotate(360deg)}}
   .spark{position:fixed;font-size:20px;opacity:.5;animation:float 7s ease-in-out infinite;z-index:0;pointer-events:none}
   @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-22px) rotate(12deg)}}
   header{text-align:center;padding:30px 16px 6px;position:relative;z-index:2}
-  .title{
-    font-family:var(--display);font-size:clamp(28px,6.5vw,58px);line-height:1.05;
-    color:#fff;letter-spacing:.01em;
-    text-shadow:0 0 18px rgba(255,61,154,.7),3px 3px 0 var(--pink), 6px 6px 0 rgba(77,155,255,.6);
-    animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;
-  }
+  .title{font-family:var(--display);font-size:clamp(28px,6.5vw,58px);line-height:1.05;color:#fff;letter-spacing:.01em;text-shadow:0 0 18px rgba(255,61,154,.7),3px 3px 0 var(--pink),6px 6px 0 rgba(77,155,255,.6);animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;}
   .title .vs{color:var(--gold);text-shadow:0 0 16px var(--gold),3px 3px 0 #c98a00}
   @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
   .subtitle{display:inline-flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:center;font-weight:800;font-size:clamp(13px,2.4vw,16px);color:var(--text);}
@@ -166,7 +155,7 @@
     <div id="no-battle" class="card">
       <div class="big-emoji">🎲</div>
       <div class="lead">いざ、バトル開始！</div>
-      <div class="sub">20問のお題から10問をランダムに抽選します</div>
+      <div class="sub">19問から10問を抽選（デザイン・アプリは必ず出題）</div>
       <button class="btn pink" id="start-btn">🎲 10問を抽選してスタート！</button>
     </div>
     <div id="battle-area" style="display:none">
@@ -234,8 +223,6 @@ const QUESTIONS=[
    prompt:"農夫がオオカミ・ヤギ・キャベツを連れて川を渡ります。ボートには農夫と、あと1つしか乗れません。農夫がいないとオオカミはヤギを食べ、ヤギはキャベツを食べます。全員を無事に対岸へ渡す手順を、ステップごとに番号付きで説明してください。"},
   {genre:"創作",title:"最後の一行で泣ける超短編",
    prompt:"最後の一文で読者をハッとさせる（または泣かせる）超短編小説を、300字以内で書いてください。タイトルも付けてください。説明や前置きは不要、作品だけ。"},
-  {genre:"要約",title:"長文を3行に",
-   prompt:"次の文章を、要点を落とさず3行で要約してください。\n\n『人工知能の歴史は1950年代に遡る。当初は記号処理による推論が主流だったが、知識をルールとして書き下す手間とコストが壁となり、1970年代と1980年代末に「冬の時代」と呼ばれる停滞を二度経験した。転機は2010年代、大量のデータと計算資源、そして深層学習の登場である。画像認識や翻訳で人間に迫る性能が示され、2020年代には大規模言語モデルが文章生成や対話で実用域に達した。一方で、誤情報の生成、著作権、雇用への影響、エネルギー消費といった社会的課題も同時に大きくなっており、技術の進歩と社会的合意形成の両輪が求められている。』"},
   {genre:"言葉遊び",title:"あいうえお作文",
    prompt:"「こうかとん」の5文字を使って、あいうえお作文を作ってください。各行の最初の文字が「こ・う・か・と・ん」になり、全体で1つのポジティブなメッセージになるようにしてください。"},
   {genre:"言葉の発明",title:"新しい日本語をつくる",
@@ -366,9 +353,12 @@ function confetti(){
   }
 }
 function startBattle(){
-  const ids=[...Array(QUESTIONS.length).keys()];
-  for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}
-  state={questionIds:ids.slice(0,10),current:0,scores:{}};
+  const guaranteed=[6,7]; // 架空カフェWebページ・雨の日の5歳児は必ず出題
+  const pool=[...Array(QUESTIONS.length).keys()].filter(i=>!guaranteed.includes(i));
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const selected=[...guaranteed,...pool.slice(0,8)];
+  for(let i=selected.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [selected[i],selected[j]]=[selected[j],selected[i]]; }
+  state={questionIds:selected,current:0,scores:{}};
   save();renderBattle();confetti();
 }
 document.querySelectorAll(".tab").forEach(tab=>{
