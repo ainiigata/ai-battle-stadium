@@ -5,8 +5,8 @@
 ## 概要
 「素人（AI初心者）が自分に合った生成AIを見つけられるチャットボット」。
 ジャンル選択（LLM／画像生成／動画生成／コーディング）→診断クイズ→おすすめAI表示、という流れの
-**汎用診断フレームワーク**を作り、**LLMカテゴリと画像生成カテゴリの実データを完成**させる。
-残り2カテゴリ（動画生成・コーディング）は枠（UI・診断エンジン）のみ用意し「近日公開」として表示する。
+**汎用診断フレームワーク**を作り、**LLM・画像生成・動画生成カテゴリの実データを完成**させる。
+残り1カテゴリ（コーディング）は枠（UI・診断エンジン）のみ用意し「近日公開」として表示する。
 
 ## 形式
 - **1ファイル完結のHTML**（`ai-shindan.html`、リポジトリルートに新規作成）
@@ -24,18 +24,18 @@
 CATEGORIES = {
   llm:    { label: "文章で相談・LLM", questions: [...], services: [...], footerNote: "..." }, // フル実装
   image:  { label: "画像生成", questions: [...], services: [...], footerNote: "..." },        // フル実装
-  video:  { label: "動画生成", comingSoon: true },  // 近日公開
+  video:  { label: "動画生成", questions: [...], services: [...], footerNote: "..." },        // フル実装
   coding: { label: "コーディング", comingSoon: true },
 }
 ```
 診断エンジン（質問を1問ずつ表示→回答収集→スコアリング→結果表示）はカテゴリに依存しない汎用実装とし、
-将来 `video` / `coding` に `questions` と `services` を追加するだけで動作するようにする。
+将来 `coding` に `questions` と `services` を追加するだけで動作するようにする。
 
 ## 画面フロー
 1. **ジャンル選択画面**：4枚のカード（LLM／画像生成／動画生成／コーディング）。
-   動画生成・コーディングの2枚は「近日公開」バッジ付き。タップすると「準備中：今後データを追加していきます」という
+   コーディングのカードは「近日公開」バッジ付き。タップすると「準備中：今後データを追加していきます」という
    メッセージカードを表示し、ジャンル選択に戻れる。
-2. **診断画面**：チャット風UIで1問ずつ選択肢を表示。進捗ドット（1/4, 2/4, 3/4, 4/4）を表示。
+2. **診断画面**：チャット風UIで1問ずつ選択肢を表示。進捗ドット（カテゴリの質問数に応じて表示。LLM・画像生成は1/4〜4/4、動画生成は1/5〜5/5）。
 3. **結果画面**：1位のおすすめAIを大きく表示＋理由、2位・3位を「こちらもおすすめ」で小さく表示。
    「もう一度診断する」ボタンでジャンル選択に戻る。
 
@@ -255,6 +255,123 @@ score(service) =
 
 ---
 
+## 動画生成診断: 質問設計（5問）
+
+**Q1. どんな動画を作りたい？**（用途タグ・単一選択）
+| 選択肢 | タグ |
+|---|---|
+| SNS用の短い動画・ショート動画を作りたい | `social` |
+| アニメ・イラスト風の動画を作りたい | `illustration` |
+| 写真みたいにリアルな実写風の動画を作りたい | `photo` |
+| 商品紹介・広告などビジネス向けの動画を作りたい | `business` |
+| ストーリー性のある複数シーンの映像を作りたい | `story` |
+| セリフ・音声・BGM入りの動画を作りたい | `audio` |
+
+**Q2. 予算は？**（LLM・画像生成と同じ選択肢を再利用）
+- A: 無料で十分
+- B: 月1,000〜3,000円くらいまで
+- C: しっかり課金してOK（本格利用）
+
+**Q3. 一番重視するのは？**
+- A: 画質・クオリティ
+- B: 生成スピード
+- C: コスパ・無料枠の多さ
+- D: セリフ・音声・BGMまで自動で作れるか
+
+**Q4. 実在する人物の顔を使った動画を作りたい？**
+- A: はい（自分や友人の写真、似た人物を動画に使いたい）
+- B: いいえ（人物の顔は使わない・気にしない）
+
+**Q5. 作った動画を商用・仕事で使いたい？**
+- A: はい、商用・仕事で使う予定がある
+- B: いいえ、個人利用（趣味・SNS投稿など）が中心
+
+## 動画生成診断: データセット（7サービス）
+
+各サービスのフィールドはLLM・画像生成と同様：
+`name, officialUrl, freePlan, paidPlans, beginnerFriendly, tags[], scores{quality, speed, value, audio}, reasonTemplates{usage, budget, priority, likeness, commercial}, risk`
+
+画像生成との違いは、`scores` の4軸目が **`audio`**（セリフ・音声・BGM生成対応、Q3に対応）であること、
+リスク軸が2つに分かれ `reasonTemplates` に **`likeness`**（Q4=A/Bごとの1文）と **`commercial`**（Q5=A/Bごとの1文）が追加されていること。
+
+選定方針：ユーザーが提示したText to Video Leaderboard（With Audio）に掲載されているモデルを使える消費者向けサービスのみを採用。
+Dreamina（Seedance 2.0、1位）、Kling AI（Kling 3.0）、Google（Veo 3.1／Flow）、Vidu（Q3 Pro）、PixVerse（V6）、Grok Imagine（grok-imagine-video）、
+LTX Studio（LTX-2.3）の7サービスをランキング上位から選定。
+HappyHorse-1.0（Alibaba-ATH）・SkyReels V4（Skywork AI）・Wan 2.6（Alibaba）・Agnes-Video-V2.0（Sapiens AI）等は、
+初心者向けの消費者アプリが確認できないため対象外。
+
+| サービス | 公式URL | 無料でできること | 有料プラン目安 | 初心者向け |
+|---|---|---|---|---|
+| **Google**（Veo 3.1／Flow） | gemini.google.com | Geminiアプリで月数回程度の動画生成が無料（透かしあり） | AI Pro ¥2,900/月（生成数アップ）／AI Ultra ¥14,500〜32,000/月（Veo 3.1フル機能・Flowで本格制作） | ◎ チャット感覚で使え日本語完全対応 |
+| **Grok Imagine**（grok-imagine-video） | grok.com | 無料プランなし（2026年に廃止） | SuperGrok Lite $10/月／SuperGrok $30/月 | △ 生成は高速だが無料体験不可、ポリシー変更が多い |
+| **Kling AI**（Kling 3.0） | klingai.com | 毎日クレジット付与（数本の短尺動画を生成可能） | Standard $6.99/月／Pro・Premier上位プラン | ◎ Web UIが直感的で画質・表現力ともにトップクラス |
+| **PixVerse**（V6） | pixverse.ai | 毎日クレジット付与（数本生成可能、無料分は商用利用不可） | Standard $10/月／Pro $30/月／Premium上位 | ◎ テンプレートが豊富でSNS向け動画を作りやすい |
+| **Vidu**（Q3 Pro） | vidu.com | 毎日クレジット付与（数本生成可能） | Standard $10/月／Pro上位プラン | ○ キャラクターの一貫性維持機能が使いやすい |
+| **Dreamina**（Seedance 2.0） | dreamina.capcut.com | 毎日クレジット付与（比較的多め） | Basic $15/月／上位プランあり | ◎ CapCut連携でSNS投稿までスムーズ |
+| **LTX Studio**（LTX-2.3） | ltx.studio | 少量のクレジットで試用可（透かしあり） | Lite $15/月（個人利用）／Standard $35/月（商用利用可）／Pro上位プラン | ○ ストーリーボード形式で複数シーンの映像制作に強い |
+
+**用途タグ（Q1マッチング用）**
+
+| サービス | tags |
+|---|---|
+| Google | photo, business, story, audio |
+| Grok Imagine | social, photo, story |
+| Kling AI | photo, illustration, story, business |
+| PixVerse | social, illustration, photo |
+| Vidu | illustration, story, social |
+| Dreamina | illustration, social, business, audio |
+| LTX Studio | story, business, audio |
+
+**特性スコア（Q3マッチング用、1〜5）**
+
+| サービス | 画質(quality) | スピード(speed) | コスパ(value) | 音声対応(audio) |
+|---|---|---|---|---|
+| Google | 4 | 3 | 2 | 5 |
+| Grok Imagine | 4 | 5 | 2 | 2 |
+| Kling AI | 5 | 3 | 4 | 3 |
+| PixVerse | 4 | 4 | 3 | 2 |
+| Vidu | 4 | 4 | 3 | 2 |
+| Dreamina | 5 | 4 | 4 | 4 |
+| LTX Studio | 3 | 2 | 2 | 3 |
+
+**リスク・注意点（結果画面に表示、各1〜2行）**
+
+| サービス | リスク・注意点 |
+|---|---|
+| Google | AI Ultraプランは高額（¥14,500〜32,000/月）。実在の人物・著名人の肖像を使う動画生成には厳格な制限があり、SynthIDによる透かしが付与される。 |
+| Grok Imagine | 2026年にディープフェイク関連の問題が表面化し、EU/UK等で規制調査が進行中。実写人物の顔を使う動画生成は特に注意が必要。 |
+| Kling AI | 顔写真アップロード機能は悪用を禁止する規約があるが運用は緩やかとの指摘も。中国企業のためデータの取り扱いに留意。 |
+| PixVerse | フェイススワップ・リップシンク機能あり。無料プランの生成物は公開され商用利用不可。 |
+| Vidu | キャラクター参照機能で実写人物の顔も利用可能。中国企業のためデータの取り扱いに留意。 |
+| Dreamina | 実写人物の顔写真アップロードは規約で禁止（なりすまし対策）。有料プランでも規約上「個人利用が主」とされ商用利用には注意。ByteDance（中国企業）のためデータの取り扱いに留意。 |
+| LTX Studio | 無料/Liteプランの生成物は個人利用限定（商用利用にはStandard以上が必要）。過去にFaceSwitch機能で実写人物の顔の取り扱いに懸念が指摘されたことがある。 |
+
+## 動画生成: スコアリングロジック
+
+```
+score(service) =
+    (service.tags に Q1タグを含む ? +3 : 0)
+  + budgetScore(Q2, service)
+  + service.scores[Q3で選んだ軸]
+  + likenessAdjust(Q4, service)     // 下記
+  + commercialAdjust(Q5, service)   // 下記
+```
+
+- `budgetScore`:
+  - Q2=A（無料で十分）: `service.scores.value` を加算
+  - Q2=B（月1,000〜3,000円）: 全サービスに¥3,000以下のエントリー有料プラン（Lite/Standard/Basic等）があるため、全サービス +3
+  - Q2=C（しっかり課金OK）: 全サービスがエントリーを大きく超える上位プラン（Pro/Premier/Ultra等）を持つため、全サービス +3
+- `likenessAdjust`（Q4=実在する人物の顔を使うか）:
+  - Q4=A（はい）: Dreamina `-3`（実写人物の顔アップロードを規約で禁止しており目的を果たせない）、Grok Imagine `-2`（2026年のディープフェイク問題で規制リスクが大きい）、LTX Studio `-1`（FaceSwitch機能で過去に懸念が指摘）、Google/Kling AI/PixVerse/Vidu `0`
+  - Q4=B（いいえ）: 全サービス `0`
+- `commercialAdjust`（Q5=商用利用するか）:
+  - Q5=A（商用利用する）: LTX Studio `-2`（無料/Liteは個人利用限定、商用には$35/月のStandard以上が必要）、Dreamina `-2`（規約上「個人利用が主」とされ商用利用には注意）、Grok Imagine `-1`（規制面の不確実性）、Google/Kling AI/PixVerse/Vidu `0`
+  - Q5=B（個人利用）: 全サービス `0`
+
+全7サービスのスコアを計算し降順ソート。上位3件を結果表示（同点時は元の配列順を優先）。
+
+---
+
 ## 結果画面
 
 - **1位**（大きいカード）
@@ -262,19 +379,21 @@ score(service) =
   - 「あなたにおすすめな理由」：`reasonTemplates` に定義されている軸の分だけ理由文を組み立てる
     - LLM: Q1（用途）・Q2（予算）・Q3（重視点）の3文
     - 画像生成: Q1（用途）・Q2（予算）・Q3（重視点）・Q4（商用利用）の4文
+    - 動画生成: Q1（用途）・Q2（予算）・Q3（重視点）・Q4（実写人物の顔）・Q5（商用利用）の5文
   - リスク・注意点（上表の内容を1〜2行で表示）
   - 「公式サイトを見る」ボタン（`officialUrl` を新規タブで開く）
 - **2位・3位**（小さいカード）：サービス名／一言理由／公式リンク
 - **共通フッター注記**：カテゴリごとの `footerNote` を表示
   - LLM: 「個人情報・機密情報を入力する際は、各サービスのプライバシー設定をご確認ください」
   - 画像生成: 「生成画像を商用利用する際は、各サービスの利用規約・ライセンス条件を必ずご確認ください」
+  - 動画生成: 「実写人物の顔を使う場合は本人の同意やなりすまし防止に関する各サービスの規約を、商用利用する場合は利用規約・ライセンス条件をあわせてご確認ください」
 - 「もう一度診断する」ボタン → ジャンル選択画面に戻る
 
-## 残りカテゴリ（動画生成・コーディング）の扱い
+## 残りカテゴリ（コーディング）の扱い
 
-- ジャンル選択画面に4枚のカードを表示し、動画生成・コーディングの2枚には「近日公開」バッジ
+- ジャンル選択画面でコーディングのカードのみ「近日公開」バッジを表示
 - タップすると「準備中：今後データを追加していきます」というメッセージカードを表示し、ジャンル選択に戻るボタンのみ表示
-- データ追加時は `CATEGORIES.video` / `CATEGORIES.coding` に `questions` と `services` を追加するだけで、診断エンジン・結果画面はそのまま再利用できる
+- データ追加時は `CATEGORIES.coding` に `questions` と `services` を追加するだけで、診断エンジン・結果画面はそのまま再利用できる
 
 ## テスト
 
@@ -283,4 +402,6 @@ score(service) =
   - LLM例: 「Q4=A」→ DeepSeekがトップ3から除外されることをassert
   - 画像生成例: 「Q1=business, Q2=A(無料), Q3=value, Q4=A(商用利用)」→ Geminiが1位になることをassert
   - 画像生成例: 「Q1=photo, Q2=C(しっかり課金), Q3=quality, Q4=A(商用利用)」→ Geminiが1位、Grok Imagineは1位にならないことをassert
+  - 動画生成例: 「Q1=audio, Q2=A(無料), Q3=audio(重視点=音声), Q4=B(実写人物の顔は使わない), Q5=B(個人利用)」→ Dreaminaが1位になることをassert
+  - 動画生成例: 「Q1=photo, Q2=C(しっかり課金), Q3=quality, Q4=A(実写人物の顔を使う), Q5=A(商用利用)」→ Kling AIが1位、Grok Imagineは1位にならないことをassert
 - UI動作は手動でブラウザ確認（ジャンル選択→診断→結果→もう一度診断、近日公開タップ）
