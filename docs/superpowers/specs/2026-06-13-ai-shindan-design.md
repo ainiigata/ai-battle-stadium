@@ -1,12 +1,12 @@
-# 生成AI選び診断ツール 設計メモ（LLM編）
+# 生成AI選び診断ツール 設計メモ
 
 作成日: 2026-06-13
 
 ## 概要
-「素人（AI初心者）が自分に合った生成AIを見つけられるチャットボット」の第一弾。
+「素人（AI初心者）が自分に合った生成AIを見つけられるチャットボット」。
 ジャンル選択（LLM／画像生成／動画生成／コーディング）→診断クイズ→おすすめAI表示、という流れの
-**汎用診断フレームワーク**を作り、今回は **LLMカテゴリのみ実データを完成**させる。
-他3カテゴリは枠（UI・診断エンジン）のみ用意し「近日公開」として表示する。
+**汎用診断フレームワーク**を作り、**LLMカテゴリと画像生成カテゴリの実データを完成**させる。
+残り2カテゴリ（動画生成・コーディング）は枠（UI・診断エンジン）のみ用意し「近日公開」として表示する。
 
 ## 形式
 - **1ファイル完結のHTML**（`ai-shindan.html`、リポジトリルートに新規作成）
@@ -22,18 +22,18 @@
 ## 全体データ構造（4カテゴリ対応の汎用エンジン）
 ```js
 CATEGORIES = {
-  llm:    { label: "文章で相談・LLM", questions: [...], services: [...] }, // 今回フル実装
-  image:  { label: "画像生成", comingSoon: true },  // 近日公開
-  video:  { label: "動画生成", comingSoon: true },
+  llm:    { label: "文章で相談・LLM", questions: [...], services: [...], footerNote: "..." }, // フル実装
+  image:  { label: "画像生成", questions: [...], services: [...], footerNote: "..." },        // フル実装
+  video:  { label: "動画生成", comingSoon: true },  // 近日公開
   coding: { label: "コーディング", comingSoon: true },
 }
 ```
 診断エンジン（質問を1問ずつ表示→回答収集→スコアリング→結果表示）はカテゴリに依存しない汎用実装とし、
-将来 `image` / `video` / `coding` に `questions` と `services` を追加するだけで動作するようにする。
+将来 `video` / `coding` に `questions` と `services` を追加するだけで動作するようにする。
 
 ## 画面フロー
 1. **ジャンル選択画面**：4枚のカード（LLM／画像生成／動画生成／コーディング）。
-   後者3つは「近日公開」バッジ付き。タップすると「準備中：今後データを追加していきます」という
+   動画生成・コーディングの2枚は「近日公開」バッジ付き。タップすると「準備中：今後データを追加していきます」という
    メッセージカードを表示し、ジャンル選択に戻れる。
 2. **診断画面**：チャット風UIで1問ずつ選択肢を表示。進捗ドット（1/4, 2/4, 3/4, 4/4）を表示。
 3. **結果画面**：1位のおすすめAIを大きく表示＋理由、2位・3位を「こちらもおすすめ」で小さく表示。
@@ -146,26 +146,141 @@ score(service) =
 
 全7サービスのスコアを計算し降順ソート。上位3件を結果表示（同点時は元の配列順を優先）。
 
+---
+
+## 画像生成診断: 質問設計（4問）
+
+**Q1. 何を作りたい？**（用途タグ・単一選択）
+| 選択肢 | タグ |
+|---|---|
+| イラスト・キャラクターを描きたい | `illustration` |
+| 写真みたいにリアルな画像を作りたい | `photo` |
+| ロゴ・アイコン・デザイン素材を作りたい | `logo` |
+| SNS用の画像・サムネイルを作りたい | `social` |
+| ポスターや看板など、文字入りの画像を作りたい | `textimage` |
+| 商品・広告などビジネス向けの画像を作りたい | `business` |
+
+**Q2. 予算は？**（LLMと同じ選択肢を再利用）
+- A: 無料で十分
+- B: 月1,000〜3,000円くらいまで
+- C: しっかり課金してOK（本格利用）
+
+**Q3. 一番重視するのは？**
+- A: 画質・クオリティ
+- B: 生成スピード
+- C: コスパ・無料枠の多さ
+- D: 日本語の指示でもうまく作れるか
+
+**Q4. 生成した画像を商用・仕事で使いたい？**
+- A: はい、商用・仕事で使う予定がある
+- B: いいえ、個人利用（趣味・SNS投稿など）が中心
+
+## 画像生成診断: データセット（7サービス）
+
+各サービスのフィールドはLLMと同様：
+`name, officialUrl, freePlan, paidPlans, beginnerFriendly, tags[], scores{quality, speed, value, japanese}, reasonTemplates{usage, budget, priority, commercial}, risk`
+
+LLMとの違いは `scores` の4軸が `quality/speed/value/japanese`（Q3に対応）であること、
+および `reasonTemplates` に **`commercial`**（Q4=A/Bごとの1文）が追加されていること。
+
+選定方針：ユーザーが提示した Text-to-Image Leaderboard（GPT Image 2 / Nano Banana / grok-imagine-image /
+MAI-Image / Krea 2 / Recraft V4.1 / ImagineArt 2.0 等）に掲載されているモデルを使える消費者向けサービスのみを採用。
+NVIDIA Cosmos・FLUX.2（Black Forest Labs単体）・ERNIE等は開発者向けAPIが中心で消費者向けアプリが弱いため対象外。
+
+| サービス | 公式URL | 無料でできること | 有料プラン目安 | 初心者向け |
+|---|---|---|---|---|
+| **ChatGPT**（GPT Image 2） | chatgpt.com | 1日2〜3枚程度（上限に達すると翌日まで待ち） | Plus ¥3,000/月で1日15枚程度／Pro ¥16,800〜30,000/月で実質無制限 | ◎ チャットで日本語完結、文字入り画像・インフォグラフィックが得意 |
+| **Gemini**（Nano Banana） | gemini.google.com | 1日100枚程度（Nano Banana 2、一部4K対応） | AI Plus ¥725／AI Pro ¥2,900／AI Ultra ¥14,500〜32,000（1日1,000枚程度） | ◎ 日本語対応良好、無料枠が圧倒的に多くアプリも充実 |
+| **Grok Imagine** | grok.com | 無料プランなし（2026年3月廃止） | SuperGrok Lite $10／SuperGrok $30 | △ UIはシンプルだが無料体験は不可 |
+| **Microsoft Designer**（MAI-Image） | designer.microsoft.com | 月15クレジット（M365契約者は60クレジット） | Copilot Pro ¥2,990/月で1日100ブースト | ○ Bing Image Creator系で使いやすい |
+| **Krea AI**（Krea 2） | krea.ai | 100 compute units/日（リアルタイム生成。※生成物は商用利用不可） | Basic $9/月（5,000units・商用利用可）／Pro $35／Max $70／Business $200 | ○ リアルタイム生成キャンバスが直感的。日本語プロンプトは公式非対応（翻訳推奨） |
+| **Recraft**（Recraft V4.1） | recraft.ai | 毎日30〜50クレジット程度（永続無料。※生成物は商用利用不可・公開扱い） | Basic $10（1,000クレジット）／Advanced $27／Pro $48／Teams $55/席 | ◎ 日本語プロンプト対応が強み、Figma的UIで操作が直感的 |
+| **ImagineArt** | imagine.art | 毎日100クレジット付与（クレカ不要。※生成物はデフォルトで公開） | Basic ¥2,500程度／Standard $30／Ultimate $50／Creator $250 | ○ 操作はシンプル・30以上のモデルを切替可能だが、iOSアプリは英語UIのみとの報告あり |
+
+**用途タグ（Q1マッチング用）**
+
+| サービス | tags |
+|---|---|
+| ChatGPT | textimage, business, illustration, social |
+| Gemini | photo, textimage, business, social |
+| Grok Imagine | photo, logo, textimage, illustration |
+| Microsoft Designer | illustration, logo, social, textimage |
+| Krea AI | photo, illustration |
+| Recraft | logo, business, textimage, social |
+| ImagineArt | photo, textimage, social |
+
+**特性スコア（Q3マッチング用、1〜5）**
+
+| サービス | 画質(quality) | スピード(speed) | コスパ(value) | 日本語対応(japanese) |
+|---|---|---|---|---|
+| ChatGPT | 4 | 4 | 2 | 5 |
+| Gemini | 5 | 4 | 5 | 5 |
+| Grok Imagine | 4 | 4 | 1 | 3 |
+| Microsoft Designer | 3 | 3 | 4 | 3 |
+| Krea AI | 4 | 5 | 3 | 2 |
+| Recraft | 4 | 3 | 3 | 5 |
+| ImagineArt | 4 | 4 | 4 | 2 |
+
+**リスク・注意点（結果画面に表示、各1〜2行）**
+
+| サービス | リスク・注意点 |
+|---|---|
+| ChatGPT | 著作権を巡る訴訟が複数進行中（2026年中に判断の可能性）。既存キャラ・ロゴに似た画像の生成は権利侵害リスクがあり自己責任。 |
+| Gemini | 個人利用は商用可だが、Geminiアプリ経由のビジネス利用には著作権侵害の補償なし（Workspace/Vertex AI経由が規約上推奨）。 |
+| Grok Imagine | 2026年3月に無料プラン廃止。ディープフェイク問題でEU/UK等が規制調査中、コンテンツポリシーが頻繁に変更される。 |
+| Microsoft Designer | 2023年11月以降商用利用可だが、第三者の商標・著名人に似た画像の生成は権利侵害リスクがあり注意。 |
+| Krea AI | 無料プランの生成物は商用利用不可・ライセンスなし（商用利用には有料プランが必須）。日本語プロンプトは公式非対応。 |
+| Recraft | 無料プランは生成物の所有権がRecraft側にあり、全て公開扱い・商用利用不可。著作権侵害時の責任は利用者負担。 |
+| ImagineArt | 無料プランの生成物はデフォルトで公開（コミュニティ公開）。iOSアプリは英語UIのみで日本語対応に課題の報告あり。 |
+
+## 画像生成: スコアリングロジック
+
+```
+score(service) =
+    (service.tags に Q1タグを含む ? +3 : 0)
+  + budgetScore(Q2, service)
+  + service.scores[Q3で選んだ軸]
+  + commercialAdjust(Q4, service)
+```
+
+- `budgetScore`:
+  - Q2=A（無料で十分）: `service.scores.value` を加算
+  - Q2=B（月1,000〜3,000円）: 全サービスに¥3,000以下のエントリー有料プランがあるため、全サービス +3
+  - Q2=C（しっかり課金OK）: エントリーを大きく超える上位プラン（Pro/Ultra/Premium等）を持つサービスは +3、エントリーのみで上位プランがないサービス（Microsoft Designer）は +1
+- `commercialAdjust`:
+  - Q4=A（商用・仕事で使う）: Grok Imagine `-3`（規制リスク）、ImagineArt `-1`（無料生成物は公開されるため商用利用には有料プラン必須）、Microsoft Designer `+1`、ChatGPT/Gemini/Krea AI/Recraft `0`
+  - Q4=B（個人利用）: 全サービス `0`
+
+全7サービスのスコアを計算し降順ソート。上位3件を結果表示（同点時は元の配列順を優先）。
+
+---
+
 ## 結果画面
 
 - **1位**（大きいカード）
   - サービス名／おすすめプランと価格
-  - 「あなたにおすすめな理由」：Q1（用途）・Q2（予算）・Q3（重視点）にそれぞれ対応する1文（`reasonTemplates` から組み立て）
+  - 「あなたにおすすめな理由」：`reasonTemplates` に定義されている軸の分だけ理由文を組み立てる
+    - LLM: Q1（用途）・Q2（予算）・Q3（重視点）の3文
+    - 画像生成: Q1（用途）・Q2（予算）・Q3（重視点）・Q4（商用利用）の4文
   - リスク・注意点（上表の内容を1〜2行で表示）
   - 「公式サイトを見る」ボタン（`officialUrl` を新規タブで開く）
 - **2位・3位**（小さいカード）：サービス名／一言理由／公式リンク
-- **共通フッター注記**：「個人情報・機密情報を入力する際は、各サービスのプライバシー設定をご確認ください」
+- **共通フッター注記**：カテゴリごとの `footerNote` を表示
+  - LLM: 「個人情報・機密情報を入力する際は、各サービスのプライバシー設定をご確認ください」
+  - 画像生成: 「生成画像を商用利用する際は、各サービスの利用規約・ライセンス条件を必ずご確認ください」
 - 「もう一度診断する」ボタン → ジャンル選択画面に戻る
 
-## 他カテゴリ（画像生成・動画生成・コーディング）の扱い
+## 残りカテゴリ（動画生成・コーディング）の扱い
 
-- ジャンル選択画面に4枚のカードを表示し、LLM以外の3枚には「近日公開」バッジ
+- ジャンル選択画面に4枚のカードを表示し、動画生成・コーディングの2枚には「近日公開」バッジ
 - タップすると「準備中：今後データを追加していきます」というメッセージカードを表示し、ジャンル選択に戻るボタンのみ表示
-- データ追加時は `CATEGORIES.image` 等に `questions` と `services` を追加するだけで、診断エンジン・結果画面はそのまま再利用できる
+- データ追加時は `CATEGORIES.video` / `CATEGORIES.coding` に `questions` と `services` を追加するだけで、診断エンジン・結果画面はそのまま再利用できる
 
 ## テスト
 
 - `jinkenhi-timer` と同様に、スコアリング関数を純粋関数として実装し、ブラウザconsoleで実行されるセルフテストを用意する
-  - 例: 「Q1=coding, Q2=A(無料), Q3=value, Q4=B」→ DeepSeekが1位になることをassert
-  - 例: 「Q4=A」→ DeepSeekがトップ3から除外されることをassert
+  - LLM例: 「Q1=coding, Q2=A(無料), Q3=value, Q4=B」→ DeepSeekが1位になることをassert
+  - LLM例: 「Q4=A」→ DeepSeekがトップ3から除外されることをassert
+  - 画像生成例: 「Q1=business, Q2=A(無料), Q3=value, Q4=A(商用利用)」→ Geminiが1位になることをassert
+  - 画像生成例: 「Q1=photo, Q2=C(しっかり課金), Q3=quality, Q4=A(商用利用)」→ Geminiが1位、Grok Imagineは1位にならないことをassert
 - UI動作は手動でブラウザ確認（ジャンル選択→診断→結果→もう一度診断、近日公開タップ）
