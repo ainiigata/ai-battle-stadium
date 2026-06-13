@@ -200,6 +200,11 @@ header.app-header p {
   background: rgba(251,215,132,0.08);
   transform: translateX(4px);
 }
+.quick-reply-back {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
 
 .msg.bot.result .bubble {
   background: transparent;
@@ -1673,6 +1678,11 @@ function scrollToLatest(el) {
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
+function removeLastMessage() {
+  const chat = document.getElementById('chat');
+  if (chat.lastElementChild) chat.lastElementChild.remove();
+}
+
 function addBotMessage(html, extraClass) {
   const chat = document.getElementById('chat');
   const msg = document.createElement('div');
@@ -1699,7 +1709,7 @@ function addQuickReplies(options, onSelect) {
   wrap.className = 'quick-replies';
   options.forEach(function (opt) {
     const btn = document.createElement('button');
-    btn.className = 'quick-reply-btn';
+    btn.className = 'quick-reply-btn' + (opt.value === '__back__' ? ' quick-reply-back' : '');
     btn.textContent = opt.label;
     btn.addEventListener('click', function () {
       wrap.remove();
@@ -1753,6 +1763,10 @@ function startChat() {
   chat.appendChild(hero);
   scrollToLatest(hero);
 
+  showGenreSelection();
+}
+
+function showGenreSelection() {
   showTyping(function () {
     addBotMessage('今日は何について知りたい?');
     addQuickReplies(
@@ -1774,6 +1788,27 @@ function selectGenre(categoryKey) {
   askNextQuestion();
 }
 
+// removeCount: 直前に積まれたチャットバブルの数(質問・回答・結果カードなど)
+function goBackToQuestion(removeCount) {
+  for (let i = 0; i < removeCount; i++) removeLastMessage();
+  delete state.answers['q' + state.questionIndex];
+  state.questionIndex--;
+  askNextQuestion();
+}
+
+function goBackFromQuestion() {
+  if (state.questionIndex === 0) {
+    removeLastMessage(); // 現在の質問(Q1)の吹き出し
+    removeLastMessage(); // ジャンル選択で選んだ回答の吹き出し
+    removeLastMessage(); // 「今日は何について知りたい?」の吹き出し
+    state.categoryKey = null;
+    state.answers = {};
+    showGenreSelection();
+  } else {
+    goBackToQuestion(3);
+  }
+}
+
 function askNextQuestion() {
   const category = CATEGORIES[state.categoryKey];
   const question = category.questions[state.questionIndex];
@@ -1781,10 +1816,17 @@ function askNextQuestion() {
 
   showTyping(function () {
     addBotMessage(buildProgressDots(state.questionIndex, total) + '<div class="quiz-question-text">' + question.text + '</div>');
-    addQuickReplies(question.options, function (opt) {
-      addUserMessage(opt.label);
-      selectAnswer(opt.value);
-    });
+    addQuickReplies(
+      question.options.concat([{ value: '__back__', label: '← 一つ前に戻る' }]),
+      function (opt) {
+        if (opt.value === '__back__') {
+          goBackFromQuestion();
+          return;
+        }
+        addUserMessage(opt.label);
+        selectAnswer(opt.value);
+      }
+    );
   });
 }
 
@@ -1800,15 +1842,29 @@ function selectAnswer(value) {
   }
 }
 
+function goBackFromResult() {
+  goBackToQuestion(4);
+}
+
 function showResultMessage() {
   const category = CATEGORIES[state.categoryKey];
   const ranked = rankServices(state.categoryKey, state.answers).slice(0, 3);
   showTyping(function () {
     addBotMessage('よし、診断結果が出たよ!');
     addBotMessage(renderResultsHtml(category, ranked), 'result');
-    addQuickReplies([{ value: 'restart', label: 'もう一度診断する 🔄' }], function () {
-      startChat();
-    });
+    addQuickReplies(
+      [
+        { value: 'restart', label: 'もう一度診断する 🔄' },
+        { value: '__back__', label: '← 一つ前に戻る' }
+      ],
+      function (opt) {
+        if (opt.value === '__back__') {
+          goBackFromResult();
+          return;
+        }
+        startChat();
+      }
+    );
   });
 }
 
