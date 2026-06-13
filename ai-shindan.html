@@ -1307,6 +1307,7 @@ const CATEGORIES = {
         hasUpperTier: true,
         environmentAdjustA: -2,
         privacyAdjustA: 1,
+        nonSelfCoderPenalty: -2,
         reasonTemplates: {
           usage: {
             autocomplete: "ふだん使うエディタ感覚でのコード補完・提案に対応しています。",
@@ -1574,7 +1575,8 @@ function extraAdjust(categoryKey, service, answers) {
            + (answers.q5 === 'A' ? (service.commercialAdjustA || 0) : 0);
     case 'coding':
       return (answers.q4 === 'A' ? (service.environmentAdjustA || 0) : 0)
-           + (answers.q5 === 'A' ? (service.privacyAdjustA || 0) : 0);
+           + (answers.q5 === 'A' ? (service.privacyAdjustA || 0) : 0)
+           + (answers.q1 !== 'autocomplete' ? (service.nonSelfCoderPenalty || 0) : 0);
   }
 }
 
@@ -1907,6 +1909,17 @@ function runSelfTests() {
   ranked = rankServices('coding', { q1: 'vibe', q2: 'A', q3: 'value', q4: 'A', q5: 'A' });
   check('コーディング: vibe/無料/コスパ重視/ブラウザのみ/プライバシー重視 → Codexが1位', ranked[0].service.name === 'Codex');
   check('コーディング: 同条件でClaude Codeは1位にならない', ranked[0].service.name !== 'Claude Code');
+
+  ranked = rankServices('coding', { q1: 'vibe', q2: 'A', q3: 'quality', q4: 'B', q5: 'A', q6: 'B' });
+  check('コーディング: vibe/無料/品質重視/プライバシー重視/AI慣れ → Codexが1位', ranked[0].service.name === 'Codex');
+  check('コーディング: 同条件でCursorは1位にならない', ranked[0].service.name !== 'Cursor');
+
+  ranked = rankServices('coding', { q1: 'vibe', q2: 'B', q3: 'quality', q4: 'B', q5: 'A', q6: 'B' });
+  check('コーディング: vibe/月1000-3000円/品質重視/プライバシー重視/AI慣れ → Claude Codeが1位', ranked[0].service.name === 'Claude Code');
+  check('コーディング: 同条件でCursorは1位にならない', ranked[0].service.name !== 'Cursor');
+
+  ranked = rankServices('coding', { q1: 'autocomplete', q2: 'B', q3: 'quality', q4: 'B', q5: 'B', q6: 'B' });
+  check('コーディング: autocomplete/月1000-3000円/品質重視 → Cursorが1位(変化なし)', ranked[0].service.name === 'Cursor');
 
   ranked = rankServices('llm', { q1: 'creative', q2: 'B', q3: 'longContext', q4: 'B', q5: 'A' });
   check('LLM: creative/B予算/longContext重視/プライバシー気にしない/初心者 → Geminiが1位', ranked[0].service.name === 'Gemini');
