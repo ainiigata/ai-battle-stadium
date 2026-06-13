@@ -1570,19 +1570,12 @@ function rankServices(categoryKey, answers) {
     });
 }
 
-function showResults() {
-  const category = CATEGORIES[state.categoryKey];
-  const ranked = rankServices(state.categoryKey, state.answers).slice(0, 3);
-  renderResults(category, ranked);
-  showScreen('result');
-}
-
-function renderResults(category, ranked) {
+function renderResultsHtml(category, ranked) {
   const first = ranked[0];
   const rest = ranked.slice(1);
 
-  const firstEl = document.getElementById('result-first');
-  firstEl.innerHTML =
+  const firstHtml =
+    '<div class="result-first">' +
     '<div class="result-rank">1位 おすすめ</div>' +
     '<h2>' + first.service.name + '</h2>' +
     '<div class="result-plan">無料: ' + first.service.freePlan + '<br>有料: ' + first.service.paidPlans + '</div>' +
@@ -1590,23 +1583,20 @@ function renderResults(category, ranked) {
       buildReasons(state.categoryKey, first.service, state.answers).map(function (r) { return '<li>' + r + '</li>'; }).join('') +
     '</ul>' +
     '<div class="result-risk">⚠️ ' + first.service.risk + '</div>' +
-    '<div class="actions-center"><a class="btn-primary" href="https://' + first.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a></div>';
+    '<div class="actions-center"><a class="btn-primary" href="https://' + first.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a></div>' +
+    '</div>';
 
-  const othersEl = document.getElementById('result-others');
-  othersEl.innerHTML = '';
-  rest.forEach(function (entry, i) {
-    const div = document.createElement('div');
-    div.className = 'result-small';
+  const othersHtml = '<div class="result-others">' + rest.map(function (entry, i) {
     const reasons = buildReasons(state.categoryKey, entry.service, state.answers);
-    div.innerHTML =
+    return '<div class="result-small">' +
       '<div class="result-rank">' + (i + 2) + '位</div>' +
       '<h3>' + entry.service.name + '</h3>' +
       '<p>' + reasons[0] + '</p>' +
-      '<a class="btn-link small" href="https://' + entry.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a>';
-    othersEl.appendChild(div);
-  });
+      '<a class="btn-link small" href="https://' + entry.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a>' +
+      '</div>';
+  }).join('') + '</div>';
 
-  document.getElementById('footer-note').textContent = category.footerNote;
+  return firstHtml + othersHtml + '<p class="footer-note">' + category.footerNote + '</p>';
 }
 
 const state = {
@@ -1617,58 +1607,122 @@ const state = {
 
 const GENRE_ICONS = { llm: "💬", image: "🎨", video: "🎬", coding: "💻" };
 
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(function (s) {
-    s.classList.remove('active');
-  });
-  document.getElementById('screen-' + name).classList.add('active');
+function scrollToLatest(el) {
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
-function renderGenreScreen() {
-  const grid = document.getElementById('genre-grid');
-  grid.innerHTML = '';
-  Object.keys(CATEGORIES).forEach(function (key) {
-    const card = document.createElement('div');
-    card.className = 'genre-card';
-    card.innerHTML = '<div class="icon">' + GENRE_ICONS[key] + '</div><h2>' + CATEGORIES[key].label + '</h2>';
-    card.addEventListener('click', function () { startQuiz(key); });
-    grid.appendChild(card);
+function addBotMessage(html, extraClass) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg bot' + (extraClass ? ' ' + extraClass : '');
+  msg.innerHTML = '<div class="avatar"></div><div class="bubble">' + html + '</div>';
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+  return msg;
+}
+
+function addUserMessage(text) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg user';
+  msg.innerHTML = '<div class="bubble user"></div>';
+  msg.querySelector('.bubble').textContent = text;
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+}
+
+function addQuickReplies(options, onSelect) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'quick-replies';
+  options.forEach(function (opt) {
+    const btn = document.createElement('button');
+    btn.className = 'quick-reply-btn';
+    btn.textContent = opt.label;
+    btn.addEventListener('click', function () {
+      wrap.remove();
+      onSelect(opt);
+    });
+    wrap.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  scrollToLatest(wrap);
+}
+
+function showTyping(callback) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg bot';
+  msg.id = 'typing-indicator';
+  msg.innerHTML = '<div class="avatar"></div><div class="bubble typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+  setTimeout(function () {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+    callback();
+  }, 500);
+}
+
+function buildProgressDots(currentIndex, total) {
+  let html = '<div class="progress-dots">';
+  for (let i = 0; i < total; i++) {
+    let cls = 'dot';
+    if (i < currentIndex) cls += ' done';
+    if (i === currentIndex) cls += ' active';
+    html += '<div class="' + cls + '"></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function startChat() {
+  const chat = document.getElementById('chat');
+  chat.innerHTML = '';
+  state.categoryKey = null;
+  state.questionIndex = 0;
+  state.answers = {};
+
+  const hero = document.createElement('div');
+  hero.className = 'msg bot hero';
+  hero.innerHTML =
+    '<img class="hero-img" src="' + GORISUKE_IMG + '" alt="ゴリすけ">' +
+    '<div class="bubble">やっほー!ゴリすけだよ🦍<br>AIツール選びを手伝うよ!</div>';
+  chat.appendChild(hero);
+  scrollToLatest(hero);
+
+  showTyping(function () {
+    addBotMessage('今日は何について知りたい?');
+    addQuickReplies(
+      Object.keys(CATEGORIES).map(function (key) {
+        return { value: key, label: GENRE_ICONS[key] + ' ' + CATEGORIES[key].label };
+      }),
+      function (opt) {
+        addUserMessage(opt.label);
+        selectGenre(opt.value);
+      }
+    );
   });
 }
 
-function startQuiz(categoryKey) {
+function selectGenre(categoryKey) {
   state.categoryKey = categoryKey;
   state.questionIndex = 0;
   state.answers = {};
-  showScreen('quiz');
-  renderQuestion();
+  askNextQuestion();
 }
 
-function renderQuestion() {
+function askNextQuestion() {
   const category = CATEGORIES[state.categoryKey];
   const question = category.questions[state.questionIndex];
   const total = category.questions.length;
 
-  const dots = document.getElementById('progress-dots');
-  dots.innerHTML = '';
-  for (let i = 0; i < total; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    if (i < state.questionIndex) dot.classList.add('done');
-    if (i === state.questionIndex) dot.classList.add('active');
-    dots.appendChild(dot);
-  }
-
-  document.getElementById('quiz-question').textContent = question.text;
-
-  const optionsEl = document.getElementById('quiz-options');
-  optionsEl.innerHTML = '';
-  question.options.forEach(function (opt) {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = opt.label;
-    btn.addEventListener('click', function () { selectAnswer(opt.value); });
-    optionsEl.appendChild(btn);
+  showTyping(function () {
+    addBotMessage(buildProgressDots(state.questionIndex, total) + '<div class="quiz-question-text">' + question.text + '</div>');
+    addQuickReplies(question.options, function (opt) {
+      addUserMessage(opt.label);
+      selectAnswer(opt.value);
+    });
   });
 }
 
@@ -1678,17 +1732,22 @@ function selectAnswer(value) {
   state.questionIndex++;
   const category = CATEGORIES[state.categoryKey];
   if (state.questionIndex < category.questions.length) {
-    renderQuestion();
+    askNextQuestion();
   } else {
-    showResults();
+    showResultMessage();
   }
 }
 
-function resetToGenre() {
-  state.categoryKey = null;
-  state.questionIndex = 0;
-  state.answers = {};
-  showScreen('genre');
+function showResultMessage() {
+  const category = CATEGORIES[state.categoryKey];
+  const ranked = rankServices(state.categoryKey, state.answers).slice(0, 3);
+  showTyping(function () {
+    addBotMessage('よし、診断結果が出たよ!');
+    addBotMessage(renderResultsHtml(category, ranked), 'result');
+    addQuickReplies([{ value: 'restart', label: 'もう一度診断する 🔄' }], function () {
+      startChat();
+    });
+  });
 }
 
 function runSelfTests() {
@@ -1736,9 +1795,8 @@ function runSelfTests() {
 
 if (new URLSearchParams(location.search).get('test') === '1') runSelfTests();
 
-document.getElementById('restart-btn').addEventListener('click', resetToGenre);
-renderGenreScreen();
-showScreen('genre');
+document.documentElement.style.setProperty('--gorisuke-avatar', 'url("' + GORISUKE_IMG + '")');
+startChat();
 </script>
 </body>
 </html>
