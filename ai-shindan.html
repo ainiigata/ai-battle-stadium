@@ -255,6 +255,15 @@ header.app-header p {
   border-radius: 8px;
   margin-bottom: 20px;
 }
+.result-budget-advice {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid #8fd9a8;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
 .result-others {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -356,6 +365,13 @@ const CATEGORIES = {
           { label: "とても気になる（個人情報や仕事の話を入れることが多い）", value: "A" },
           { label: "それほど気にしない（一般的な調べ物や雑談が中心）", value: "B" }
         ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
       }
     ],
     services: [
@@ -369,6 +385,7 @@ const CATEGORIES = {
         scores: { intelligence: 5, speed: 3, value: 2, longContext: 4 },
         cheapEntry: true,
         topTier: true,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             writing: "文章作成やメールの下書き・要約まで、自然な日本語でこなせます。",
@@ -432,6 +449,7 @@ const CATEGORIES = {
         scores: { intelligence: 4, speed: 5, value: 5, longContext: 5 },
         cheapEntry: true,
         topTier: true,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             writing: "文章作成や要約も自然な日本語で対応できます。",
@@ -607,6 +625,13 @@ const CATEGORIES = {
           { label: "はい、商用・仕事で使う予定がある", value: "A" },
           { label: "いいえ、個人利用（趣味・SNS投稿など）が中心", value: "B" }
         ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
       }
     ],
     services: [
@@ -619,6 +644,7 @@ const CATEGORIES = {
         tags: ["textimage", "business", "illustration", "social"],
         scores: { quality: 4, speed: 4, value: 2, japanese: 5 },
         hasUpperTier: true,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             textimage: "ポスターや看板などの文字入り画像・インフォグラフィック作りが得意です。",
@@ -635,7 +661,7 @@ const CATEGORIES = {
             quality: "画質・クオリティは標準以上で、文字入り画像も綺麗に仕上がります。",
             speed: "生成スピードはテンポよく仕上がります。",
             value: "無料枠は少なめなので、コスパ重視には不向きです。",
-            japanese: "日本語の指示を最も得意とし、チャットで完結します。"
+            japanese: "画像内に日本語の文字を正確に表示できる、最も得意なサービスです。"
           },
           commercial: {
             A: "著作権を巡る訴訟が複数進行中のため、既存キャラ・ロゴに似た画像の商用利用はリスクに注意が必要です。",
@@ -651,8 +677,9 @@ const CATEGORIES = {
         paidPlans: "AI Plus ¥725／AI Pro ¥2,900／AI Ultra ¥14,500〜32,000（1日1,000枚程度）",
         beginnerFriendly: "日本語対応良好、無料枠が圧倒的に多くアプリも充実",
         tags: ["photo", "textimage", "business", "social"],
-        scores: { quality: 5, speed: 4, value: 5, japanese: 5 },
+        scores: { quality: 5, speed: 4, value: 5, japanese: 4 },
         hasUpperTier: true,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             photo: "写真のようにリアルな画像生成も得意です。",
@@ -669,7 +696,7 @@ const CATEGORIES = {
             quality: "画質はトップクラスで、4K対応の生成も可能です。",
             speed: "生成スピードもテンポよく仕上がります。",
             value: "無料枠が圧倒的に多く、コスパに優れています。",
-            japanese: "日本語の指示にも高い精度で対応します。"
+            japanese: "画像内の日本語表示にも対応していますが、文字の精度はChatGPTに一歩譲ります。"
           },
           commercial: {
             A: "Geminiアプリ経由のビジネス利用には著作権侵害の補償がない点に注意が必要です（Workspace/Vertex AI経由が規約上推奨）。",
@@ -685,7 +712,7 @@ const CATEGORIES = {
         paidPlans: "SuperGrok Lite $10／SuperGrok $30",
         beginnerFriendly: "UIはシンプルだが無料体験は不可",
         tags: ["photo", "logo", "textimage", "illustration"],
-        scores: { quality: 4, speed: 4, value: 1, japanese: 3 },
+        scores: { quality: 4, speed: 4, value: 1, japanese: 1 },
         hasUpperTier: true,
         commercialAdjustA: -3,
         reasonTemplates: {
@@ -704,7 +731,7 @@ const CATEGORIES = {
             quality: "画質は標準以上のクオリティです。",
             speed: "生成スピードはテンポよく仕上がります。",
             value: "無料プランがなく、コスパ重視には向きません。",
-            japanese: "日本語指示への対応は標準的です。"
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
           },
           commercial: {
             A: "ディープフェイク問題でEU/UK等が規制調査中のため、商用利用にはリスクがあります。",
@@ -720,7 +747,7 @@ const CATEGORIES = {
         paidPlans: "Copilot Pro ¥2,990/月で1日100ブースト",
         beginnerFriendly: "Bing Image Creator系で使いやすい",
         tags: ["illustration", "logo", "social", "textimage"],
-        scores: { quality: 3, speed: 3, value: 4, japanese: 3 },
+        scores: { quality: 3, speed: 3, value: 4, japanese: 1 },
         hasUpperTier: false,
         commercialAdjustA: 1,
         reasonTemplates: {
@@ -739,7 +766,7 @@ const CATEGORIES = {
             quality: "画質は標準的なクオリティです。",
             speed: "生成スピードは標準的です。",
             value: "クレジット制でコスパは中程度です。",
-            japanese: "日本語指示への対応は標準的です。"
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
           },
           commercial: {
             A: "2023年11月以降商用利用可で、ビジネス向け画像生成にも適しています。",
@@ -755,7 +782,7 @@ const CATEGORIES = {
         paidPlans: "Basic $9/月（5,000units・商用利用可）／Pro $35／Max $70／Business $200",
         beginnerFriendly: "リアルタイム生成キャンバスが直感的。日本語プロンプトは公式非対応（翻訳推奨）",
         tags: ["photo", "illustration"],
-        scores: { quality: 4, speed: 5, value: 3, japanese: 2 },
+        scores: { quality: 4, speed: 5, value: 3, japanese: 1 },
         hasUpperTier: true,
         reasonTemplates: {
           usage: {
@@ -771,7 +798,7 @@ const CATEGORIES = {
             quality: "画質は標準以上のクオリティです。",
             speed: "リアルタイム生成キャンバスにより生成スピードはトップクラスです。",
             value: "無料枠はありますが、商用利用不可な点に注意が必要です。",
-            japanese: "日本語プロンプトは公式非対応のため、翻訳推奨です。"
+            japanese: "日本語プロンプトは公式非対応で、画像内に日本語の文字を入れるのも苦手です（文字が崩れやすい）。"
           },
           commercial: {
             A: "無料プランの生成物は商用利用不可のため、商用利用にはBasic以上のプランが必須です。",
@@ -787,7 +814,7 @@ const CATEGORIES = {
         paidPlans: "Basic $10（1,000クレジット）／Advanced $27／Pro $48／Teams $55/席",
         beginnerFriendly: "日本語プロンプト対応が強み、Figma的UIで操作が直感的",
         tags: ["logo", "business", "textimage", "social"],
-        scores: { quality: 4, speed: 3, value: 3, japanese: 5 },
+        scores: { quality: 4, speed: 3, value: 3, japanese: 1 },
         hasUpperTier: true,
         reasonTemplates: {
           usage: {
@@ -805,7 +832,7 @@ const CATEGORIES = {
             quality: "画質は標準以上のクオリティです。",
             speed: "生成スピードは標準的です。",
             value: "永続無料のクレジットがあり、コスパは良好です（商用利用不可な点に注意）。",
-            japanese: "日本語プロンプト対応が強みで、指示が伝わりやすいです。"
+            japanese: "指示は日本語で伝わりやすいですが、画像内に日本語の文字を正確に表示するのは苦手で、文字が崩れることが多いです。"
           },
           commercial: {
             A: "無料プランの生成物は商用利用不可・公開扱いのため、商用利用には有料プランが必要です。",
@@ -821,7 +848,7 @@ const CATEGORIES = {
         paidPlans: "Basic ¥2,500程度／Standard $30／Ultimate $50／Creator $250",
         beginnerFriendly: "操作はシンプル・30以上のモデルを切替可能だが、iOSアプリは英語UIのみとの報告あり",
         tags: ["photo", "textimage", "social"],
-        scores: { quality: 4, speed: 4, value: 4, japanese: 2 },
+        scores: { quality: 4, speed: 4, value: 4, japanese: 1 },
         hasUpperTier: true,
         commercialAdjustA: -1,
         reasonTemplates: {
@@ -839,7 +866,7 @@ const CATEGORIES = {
             quality: "画質は標準的なクオリティを保っています。",
             speed: "生成スピードはテンポよく、待ち時間が少ないです。",
             value: "毎日もらえる無料クレジットでコスパ良く使えます。",
-            japanese: "日本語プロンプトの対応はやや弱めです。"
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
           },
           commercial: {
             A: "無料プランの生成物はデフォルトで公開されるため、商用利用には有料プランが必要です。",
@@ -895,6 +922,13 @@ const CATEGORIES = {
           { label: "はい、商用・仕事で使う予定がある", value: "A" },
           { label: "いいえ、個人利用（趣味・SNS投稿など）が中心", value: "B" }
         ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
       }
     ],
     services: [
@@ -906,6 +940,7 @@ const CATEGORIES = {
         beginnerFriendly: "チャット感覚で使え日本語完全対応",
         tags: ["photo", "business", "story", "audio"],
         scores: { quality: 4, speed: 3, value: 2, audio: 5 },
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             photo: "写真のようにリアルな実写風の動画生成に対応しています。",
@@ -1206,6 +1241,13 @@ const CATEGORIES = {
           { label: "とても気になる", value: "A" },
           { label: "それほど気にしない", value: "B" }
         ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
       }
     ],
     services: [
@@ -1340,6 +1382,7 @@ const CATEGORIES = {
         cheapEntry: true,
         hasUpperTier: true,
         environmentAdjustA: 1,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             vibe: "「こんなアプリが欲しい」という要望から、ChatGPTのサイドバーで自動的にコードを書き上げてくれます。",
@@ -1422,6 +1465,7 @@ const CATEGORIES = {
         hasUpperTier: true,
         environmentAdjustA: -2,
         privacyAdjustA: -1,
+        wellKnown: true,
         reasonTemplates: {
           usage: {
             vibe: "「こんなアプリが欲しい」という要望から、Gemini 3 Pro採用のエージェントが開発を進めます。",
@@ -1529,12 +1573,18 @@ function extraAdjust(categoryKey, service, answers) {
   }
 }
 
+function familiarityAdjust(categoryKey, service, answers) {
+  const familiarityKey = (categoryKey === 'llm' || categoryKey === 'image') ? 'q5' : 'q6';
+  return (answers[familiarityKey] === 'A' && service.wellKnown) ? 4 : 0;
+}
+
 function scoreService(categoryKey, service, answers) {
   let score = 0;
   if (service.tags.indexOf(answers.q1) !== -1) score += 3;
   score += budgetScore(categoryKey, answers.q2, service);
   score += service.scores[answers.q3];
   score += extraAdjust(categoryKey, service, answers);
+  score += familiarityAdjust(categoryKey, service, answers);
   return score;
 }
 
@@ -1570,6 +1620,17 @@ function rankServices(categoryKey, answers) {
     });
 }
 
+function buildBudgetAdvice(q2) {
+  switch (q2) {
+    case 'A':
+      return '💰 こんな時は課金を検討しても良いかも: 無料枠を毎日使い切ってしまう / もっと高精度な回答や生成物が欲しい / 仕事の効率化に時間を使いたい。月1,000円台のプランから試すのがおすすめです。';
+    case 'B':
+      return '💰 上記のおすすめプランで十分な体験が得られる予算感です。さらに使い込みたくなったら上位プランへのアップグレードを検討してみましょう。';
+    case 'C':
+      return '💰 本格利用なら上位プランの性能をフルに活かせます。ただし複数サービスを契約しすぎるとコストが膨らむので、まずは1つに絞って使い込むのがおすすめです。';
+  }
+}
+
 function renderResultsHtml(category, ranked) {
   const first = ranked[0];
   const rest = ranked.slice(1);
@@ -1583,6 +1644,7 @@ function renderResultsHtml(category, ranked) {
       buildReasons(state.categoryKey, first.service, state.answers).map(function (r) { return '<li>' + r + '</li>'; }).join('') +
     '</ul>' +
     '<div class="result-risk">⚠️ ' + first.service.risk + '</div>' +
+    '<div class="result-budget-advice">' + buildBudgetAdvice(state.answers.q2) + '</div>' +
     '<div class="actions-center"><a class="btn-primary" href="https://' + first.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a></div>' +
     '</div>';
 
@@ -1789,6 +1851,12 @@ function runSelfTests() {
   ranked = rankServices('coding', { q1: 'vibe', q2: 'A', q3: 'value', q4: 'A', q5: 'A' });
   check('コーディング: vibe/無料/コスパ重視/ブラウザのみ/プライバシー重視 → Codexが1位', ranked[0].service.name === 'Codex');
   check('コーディング: 同条件でClaude Codeは1位にならない', ranked[0].service.name !== 'Claude Code');
+
+  ranked = rankServices('llm', { q1: 'creative', q2: 'B', q3: 'longContext', q4: 'B', q5: 'A' });
+  check('LLM: creative/B予算/longContext重視/プライバシー気にしない/初心者 → Geminiが1位', ranked[0].service.name === 'Gemini');
+
+  ranked = rankServices('image', { q1: 'logo', q2: 'A', q3: 'japanese', q4: 'B' });
+  check('画像生成: logo/無料/日本語重視/個人利用 → ChatGPT/Geminiが1位(Recraftは1位にならない)', ['ChatGPT', 'Gemini'].indexOf(ranked[0].service.name) !== -1);
 
   console.log('セルフテスト: ' + pass + ' pass / ' + fail + ' fail');
 }
