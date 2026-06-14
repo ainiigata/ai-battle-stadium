@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中野AIチャットボット | あなたにぴったりの生成AIが見つかる</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #4fc3f7;
+  --dark: #0a1622;
+  --dark-card: rgba(255,255,255,0.04);
+  --border: rgba(79,195,247,0.25);
+  --text-muted: rgba(255,255,255,0.65);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--dark);
+  color: #fff;
+  font-family: 'IBM Plex Sans JP', 'Montserrat', sans-serif;
+  min-height: 100vh;
+  line-height: 1.7;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(79,195,247,0.15), transparent 70%);
+  filter: blur(60px);
+  z-index: -1;
+  animation: drift 30s ease-in-out infinite alternate;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(15,90,140,0.4), transparent 70%);
+  filter: blur(80px);
+  z-index: -1;
+  animation: drift 40s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift {
+  from { transform: translate(0,0); }
+  to { transform: translate(5%, 5%); }
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+header.app-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+header.app-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 5vw, 42px);
+  color: var(--primary);
+  letter-spacing: 0.05em;
+}
+header.app-header p {
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: fadeIn 0.4s ease;
+}
+.msg.user {
+  justify-content: flex-end;
+}
+.msg.hero {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-image: var(--nakano-avatar);
+  background-size: 250% auto;
+  background-position: center 5%;
+  background-repeat: no-repeat;
+  background-color: var(--dark-card);
+  border: 2px solid var(--primary);
+}
+
+.hero-img {
+  width: 120px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.bubble {
+  background: var(--dark-card);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+  padding: 14px 18px;
+  max-width: 80%;
+  min-width: 0;
+  font-size: 15px;
+}
+.bubble.user {
+  background: linear-gradient(135deg, var(--primary), #8fe3ff);
+  color: var(--dark);
+  border: none;
+  border-radius: 16px 16px 4px 16px;
+  font-weight: 600;
+}
+.bubble.typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 18px;
+}
+.bubble.typing span {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.5;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+.bubble.typing span:nth-child(2) { animation-delay: 0.15s; }
+.bubble.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-6px); opacity: 1; }
+}
+
+.quiz-question-text {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid var(--border);
+}
+.dot.active { background: var(--primary); box-shadow: 0 0 6px var(--primary); }
+.dot.done { background: rgba(79,195,247,0.5); }
+
+.quick-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 54px;
+}
+
+.quick-reply-btn {
+  background: var(--dark-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #fff;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+  font-family: inherit;
+}
+.quick-reply-btn:hover {
+  border-color: var(--primary);
+  background: rgba(79,195,247,0.08);
+  transform: translateX(4px);
+}
+.quick-reply-back {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.msg.bot.result .bubble {
+  background: transparent;
+  border: none;
+  padding: 0;
+  max-width: 100%;
+}
+
+.result-first {
+  background: var(--dark-card);
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 0 40px rgba(79,195,247,0.1);
+}
+.result-rank {
+  display: inline-block;
+  background: var(--primary);
+  color: var(--dark);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.result-first h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 5vw, 36px);
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.result-plan { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+.result-reasons { list-style: none; margin-bottom: 16px; }
+.result-reasons li {
+  padding-left: 1.4em;
+  position: relative;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.result-reasons li::before {
+  content: '✓';
+  position: absolute; left: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+.result-risk {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid var(--primary);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.result-budget-advice {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid #8fd9a8;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.result-others {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (max-width: 600px) { .result-others { grid-template-columns: 1fr; } }
+.result-small {
+  background: var(--dark-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.result-small .result-rank { font-size: 11px; }
+.result-small h3 { font-size: 16px; margin: 6px 0 6px; }
+.result-small p { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+
+.footer-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 0 10px;
+}
+
+.btn-primary, .btn-link {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), #8fe3ff);
+  color: var(--dark);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.btn-primary:hover, .btn-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79,195,247,0.3);
+}
+.btn-link.small {
+  padding: 8px 18px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+.actions-center { text-align: center; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="app-header">
+    <h1>中野AIチャットボット</h1>
+    <p>ナカノAIと話して、あなたにぴったりの生成AIを見つけよう</p>
+  </header>
+
+  <div class="chat" id="chat"></div>
+</div>
+<script>
+const NAKANO_IMG = "data:image/jpeg;base64,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";
+const CATEGORIES = {
+  llm: {
+    label: "文章で相談・LLM",
+    questions: [
+      {
+        text: "主に何に使いたい？",
+        options: [
+          { label: "文章作成・メールの下書き・要約", value: "writing" },
+          { label: "最新ニュースや調べ物のリサーチ", value: "research" },
+          { label: "プログラミング・コードを書く/直す", value: "coding" },
+          { label: "アイデア出し・創作・なんでも相談", value: "creative" },
+          { label: "画像・写真・PDFなどを読み込んで質問", value: "vision" },
+          { label: "仕事の資料作成（Word/Excel/PowerPoint）", value: "office" }
+        ]
+      },
+      {
+        text: "予算は？",
+        options: [
+          { label: "無料で十分", value: "A" },
+          { label: "月1,000〜3,000円くらいまで", value: "B" },
+          { label: "しっかり課金してOK（本格利用）", value: "C" }
+        ]
+      },
+      {
+        text: "一番重視するのは？",
+        options: [
+          { label: "賢さ・答えの精度", value: "intelligence" },
+          { label: "返事の速さ・テンポ", value: "speed" },
+          { label: "無料でどれだけ使えるか", value: "value" },
+          { label: "長い文章・資料を一度に扱える", value: "longContext" }
+        ]
+      },
+      {
+        text: "プライバシー・データの取り扱いは気になりますか？",
+        options: [
+          { label: "とても気になる（個人情報や仕事の話を入れることが多い）", value: "A" },
+          { label: "それほど気にしない（一般的な調べ物や雑談が中心）", value: "B" }
+        ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
+      }
+    ],
+    services: [
+      {
+        name: "ChatGPT",
+        officialUrl: "chatgpt.com",
+        freePlan: "GPT-5.3 Instantが5時間10回まで（米国は広告あり）、超過後はMiniに切替",
+        paidPlans: "Plus ¥3,000程度/月（GPT-5.5利用可）／Pro $100〜200/月",
+        beginnerFriendly: "完全日本語・全端末対応",
+        tags: ["writing", "research", "coding", "creative", "vision"],
+        scores: { intelligence: 5, speed: 3, value: 2, longContext: 4 },
+        cheapEntry: true,
+        topTier: true,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            writing: "文章作成やメールの下書き・要約まで、自然な日本語でこなせます。",
+            research: "最新ニュースの調べ物にも対応でき、Web検索結果を踏まえて答えてくれます。",
+            coding: "コードの説明や生成にも強く、プログラミングの相談相手として優秀です。",
+            creative: "アイデア出しや創作の相談まで幅広く付き合ってくれます。",
+            vision: "画像やPDFを読み込んで内容について質問できます。"
+          },
+          budget: {
+            A: "無料でもGPT-5.3 Instantが1日数回使え、超過後もMiniで利用を続けられます。",
+            B: "Plusプラン(¥3,000程度)でGPT-5.5まで使えるようになります。",
+            C: "Proプラン($100〜200/月)で実質無制限に近い形で使えます。"
+          },
+          priority: {
+            intelligence: "賢さ・回答の精度はトップクラスで、難しい相談にも強いです。",
+            speed: "レスポンスはテンポよく返ってくるので会話感覚で使えます。",
+            value: "無料の範囲でも基本的な相談には十分対応できます。",
+            longContext: "長い文章や資料を一度に渡してもまとめて扱えます。"
+          }
+        },
+        risk: "会話が学習に使われる設定がデフォルトON（設定でオプトアウト可）。削除後も30日保持。2026年に複数訴訟が話題。"
+      },
+      {
+        name: "Claude",
+        officialUrl: "claude.ai",
+        freePlan: "5時間で約10〜20回",
+        paidPlans: "Pro ¥3,000程度/月（+税、Claude Fable 5/Opus 4.8）／Max ¥15,000〜30,000/月",
+        beginnerFriendly: "2026年に日本語が大幅向上",
+        tags: ["coding", "creative", "writing", "vision"],
+        scores: { intelligence: 5, speed: 3, value: 2, longContext: 5 },
+        cheapEntry: true,
+        topTier: true,
+        reasonTemplates: {
+          usage: {
+            coding: "コードの自動修正や複数ファイルの理解に強く、開発の相談相手として頼れます。",
+            creative: "アイデア出しや創作の相談を丁寧に深掘りしてくれます。",
+            writing: "文章作成や要約も自然な日本語で仕上げてくれます。",
+            vision: "画像やPDFを読み込んで内容について質問できます。"
+          },
+          budget: {
+            A: "無料でも5時間で10〜20回ほど使えるので、ちょっとした相談には十分です。",
+            B: "Proプラン(¥3,000程度/月)でClaude Fable 5やOpus 4.8まで使えるようになります。",
+            C: "Maxプラン(¥15,000〜30,000/月)で利用回数を大きく増やせます。"
+          },
+          priority: {
+            intelligence: "賢さ・回答の精度はトップクラスで、複雑な相談にも強いです。",
+            speed: "テンポよく返ってくるので会話感覚で使えます。",
+            value: "無料の範囲でも基本的な相談には対応できます。",
+            longContext: "長文の資料も一度に渡してまとめて扱えるのが得意です。"
+          }
+        },
+        risk: "個人プランは学習利用がデフォルトオプトイン（最大5年保持、オプトアウト可）。2026年6月、安全性レビュー対象の会話は設定に関わらず学習利用される場合あり。"
+      },
+      {
+        name: "Gemini",
+        officialUrl: "gemini.google.com",
+        freePlan: "完全無料、Gemini 3.5 Flash等（使用量上限あり）",
+        paidPlans: "AI Plus ¥1,200／AI Pro ¥2,900／AI Ultra ¥14,500〜32,000",
+        beginnerFriendly: "Google連携・アプリ充実",
+        tags: ["writing", "research", "vision", "creative"],
+        scores: { intelligence: 4, speed: 5, value: 5, longContext: 5 },
+        cheapEntry: true,
+        topTier: true,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            writing: "文章作成や要約も自然な日本語で対応できます。",
+            research: "Web検索と連携した最新情報のリサーチに強みがあります。",
+            vision: "画像やPDFを読み込んで内容について質問できます。",
+            creative: "アイデア出しや創作の相談にも幅広く対応します。"
+          },
+          budget: {
+            A: "完全無料でGemini 3.5 Flash等が使えます（使用量に上限あり）。",
+            B: "AI Plusプラン(¥1,200)から手軽にアップグレードできます。",
+            C: "AI Ultraプラン(¥14,500〜32,000)で利用上限を大きく増やせます。"
+          },
+          priority: {
+            intelligence: "賢さは上位クラスで、幅広い相談に対応できます。",
+            speed: "返事のテンポが速く、サクサク使えます。",
+            value: "無料の使用量上限が大きく、コスパに優れています。",
+            longContext: "長文の資料も一度にまとめて扱えます。"
+          }
+        },
+        risk: "無料は学習利用がデフォルトON（オフ可、Temporary Chatで72時間削除）。2026年、悪用・訴訟事例が報道。"
+      },
+      {
+        name: "Grok",
+        officialUrl: "grok.com",
+        freePlan: "25回/2時間、画像生成20回/日",
+        paidPlans: "SuperGrok ¥4,500程度/月、Heavy $300/月",
+        beginnerFriendly: "X連携が強み",
+        tags: ["research"],
+        scores: { intelligence: 4, speed: 5, value: 3, longContext: 4 },
+        cheapEntry: false,
+        topTier: true,
+        reasonTemplates: {
+          usage: {
+            research: "X(旧Twitter)と連携した最新情報のリサーチに強みがあります。"
+          },
+          budget: {
+            A: "無料でも2時間に25回程度利用できます。",
+            B: "SuperGrokプラン(¥4,500程度)で利用上限を増やせます（やや割高）。",
+            C: "Heavyプラン($300/月)で大幅に利用上限を増やせます。"
+          },
+          priority: {
+            intelligence: "賢さは上位クラスの回答品質です。",
+            speed: "返事のテンポはトップクラスの速さです。",
+            value: "無料枠はありますが、コスパは標準的です。",
+            longContext: "長文の資料もまとめて扱えます。"
+          }
+        },
+        risk: "デフォルトでオプトイン、オプトアウトは2箇所設定が必要。画像生成の悪用でEU調査対象、モデレーションが緩い傾向。"
+      },
+      {
+        name: "Perplexity",
+        officialUrl: "perplexity.ai",
+        freePlan: "Pro Search 3-5回/日、Deep Research 5回/日",
+        paidPlans: "Pro ¥3,000/月、Max $200/月",
+        beginnerFriendly: "出典付きで分かりやすい",
+        tags: ["research"],
+        scores: { intelligence: 4, speed: 4, value: 3, longContext: 3 },
+        cheapEntry: true,
+        topTier: true,
+        reasonTemplates: {
+          usage: {
+            research: "出典付きで分かりやすく、調べ物のリサーチに特化しています。"
+          },
+          budget: {
+            A: "無料でもPro Searchを1日3-5回、Deep Researchを1日5回使えます。",
+            B: "Proプラン(¥3,000/月)で利用回数の上限を増やせます。",
+            C: "Maxプラン($200/月)でさらに高度な検索・分析が使えます。"
+          },
+          priority: {
+            intelligence: "賢さは上位クラスで、出典付きの回答に強みがあります。",
+            speed: "返事のテンポも比較的速いです。",
+            value: "無料枠は標準的なコスパです。",
+            longContext: "長文の資料もまとめて扱えます。"
+          }
+        },
+        risk: "無料・有料ともデフォルト学習利用。未ログインはオプトアウト不可。出典の正確性に課題の報告も。"
+      },
+      {
+        name: "Copilot",
+        officialUrl: "copilot.microsoft.com",
+        freePlan: "M365があれば追加費用なしでチャット利用可",
+        paidPlans: "Copilot Pro ¥1,490〜3,200/月",
+        beginnerFriendly: "Office統合",
+        tags: ["office", "writing"],
+        scores: { intelligence: 4, speed: 3, value: 4, longContext: 4 },
+        cheapEntry: true,
+        topTier: false,
+        reasonTemplates: {
+          usage: {
+            office: "Word・Excel・PowerPointと統合されており、仕事の資料作成に向いています。",
+            writing: "文章作成やメールの下書きも自然な日本語で対応できます。"
+          },
+          budget: {
+            A: "M365を契約していれば追加費用なしでチャット利用できます。",
+            B: "Copilot Proプラン(¥1,490〜3,200)で機能を拡張できます。",
+            C: "Copilot Proプランが上限で、本格的な課金には他サービスの方が選択肢が豊富です。"
+          },
+          priority: {
+            intelligence: "賢さは標準以上で、Office文書の作成にも対応できます。",
+            speed: "返事のテンポは標準的です。",
+            value: "M365契約者なら追加費用なしで使えるコスパの良さが魅力です。",
+            longContext: "長文の資料もOffice文書の形式でまとめて扱えます。"
+          }
+        },
+        risk: "個人版はデフォルト学習利用（オフ可）。組織/M365 Family内/18歳未満は対象外。過剰モデレーションへの不満も話題。"
+      },
+      {
+        name: "DeepSeek",
+        officialUrl: "chat.deepseek.com",
+        freePlan: "実質無制限、最新V4 Proも無料",
+        paidPlans: "個人向け有料プランなし",
+        beginnerFriendly: "中国製AIで情報管理に注意",
+        tags: ["coding", "writing"],
+        scores: { intelligence: 3, speed: 3, value: 5, longContext: 5 },
+        noPaidPlan: true,
+        highPrivacyRisk: true,
+        reasonTemplates: {
+          usage: {
+            coding: "コードの生成・修正にも対応でき、無料で気軽に試せます。",
+            writing: "文章作成や要約も無料で実質無制限に使えます。"
+          },
+          budget: {
+            A: "無料で実質無制限に使え、最新のV4 Proも無料で利用できます。",
+            B: "個人向け有料プランがないため、無料の範囲で使うことになります。",
+            C: "個人向け有料プランがないため、無料の範囲で使うことになります。"
+          },
+          priority: {
+            intelligence: "賢さは標準的なクラスですが、無料で十分に使えます。",
+            speed: "返事のテンポは標準的です。",
+            value: "無料で実質無制限に使えるコスパの高さが最大の魅力です。",
+            longContext: "長文の資料も無料の範囲でまとめて扱えます。"
+          }
+        },
+        risk: "データを中国国内に保存・処理。国家情報法により政府がデータ提供要求可。複数国で利用制限。政治的話題は検閲。個人情報の入力は非推奨。"
+      }
+    ],
+    footerNote: "個人情報・機密情報を入力する際は、各サービスのプライバシー設定をご確認ください"
+  },
+  image: {
+    label: "画像生成",
+    questions: [
+      {
+        text: "何を作りたい？",
+        options: [
+          { label: "イラスト・キャラクターを描きたい", value: "illustration" },
+          { label: "写真みたいにリアルな画像を作りたい", value: "photo" },
+          { label: "ロゴ・アイコン・デザイン素材を作りたい", value: "logo" },
+          { label: "SNS用の画像・サムネイルを作りたい", value: "social" },
+          { label: "ポスターや看板など、文字入りの画像を作りたい", value: "textimage" },
+          { label: "商品・広告などビジネス向けの画像を作りたい", value: "business" }
+        ]
+      },
+      {
+        text: "予算は？",
+        options: [
+          { label: "無料で十分", value: "A" },
+          { label: "月1,000〜3,000円くらいまで", value: "B" },
+          { label: "しっかり課金してOK（本格利用）", value: "C" }
+        ]
+      },
+      {
+        text: "一番重視するのは？",
+        options: [
+          { label: "画質・クオリティ", value: "quality" },
+          { label: "生成スピード", value: "speed" },
+          { label: "コスパ・無料枠の多さ", value: "value" },
+          { label: "日本語の指示でもうまく作れるか", value: "japanese" }
+        ]
+      },
+      {
+        text: "生成した画像を商用・仕事で使いたい？",
+        options: [
+          { label: "はい、商用・仕事で使う予定がある", value: "A" },
+          { label: "いいえ、個人利用（趣味・SNS投稿など）が中心", value: "B" }
+        ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
+      }
+    ],
+    services: [
+      {
+        name: "ChatGPT",
+        officialUrl: "chatgpt.com",
+        freePlan: "1日2〜3枚程度（上限に達すると翌日まで待ち）",
+        paidPlans: "Plus ¥3,000/月で1日15枚程度／Pro ¥16,800〜30,000/月で実質無制限",
+        beginnerFriendly: "チャットで日本語完結、文字入り画像・インフォグラフィックが得意",
+        tags: ["textimage", "business", "illustration", "social"],
+        scores: { quality: 4, speed: 4, value: 2, japanese: 5 },
+        hasUpperTier: true,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            textimage: "ポスターや看板などの文字入り画像・インフォグラフィック作りが得意です。",
+            business: "商品・広告などビジネス向けの画像作成にも対応できます。",
+            illustration: "イラストやキャラクター風の画像生成にも対応します。",
+            social: "SNS用の画像やサムネイル作りにも使えます。"
+          },
+          budget: {
+            A: "無料でも1日2〜3枚程度生成できます（上限に達すると翌日まで待ち）。",
+            B: "Plusプラン(¥3,000/月)で1日15枚程度まで生成できます。",
+            C: "Proプラン(¥16,800〜30,000/月)で実質無制限に生成できます。"
+          },
+          priority: {
+            quality: "画質・クオリティは標準以上で、文字入り画像も綺麗に仕上がります。",
+            speed: "生成スピードはテンポよく仕上がります。",
+            value: "無料枠は少なめなので、コスパ重視には不向きです。",
+            japanese: "画像内に日本語の文字を正確に表示できる、最も得意なサービスです。"
+          },
+          commercial: {
+            A: "著作権を巡る訴訟が複数進行中のため、既存キャラ・ロゴに似た画像の商用利用はリスクに注意が必要です。",
+            B: "個人利用なら無料枠の範囲でも楽しめます。"
+          }
+        },
+        risk: "著作権を巡る訴訟が複数進行中（2026年中に判断の可能性）。既存キャラ・ロゴに似た画像の生成は権利侵害リスクがあり自己責任。"
+      },
+      {
+        name: "Gemini",
+        officialUrl: "gemini.google.com",
+        freePlan: "1日100枚程度（Nano Banana 2、一部4K対応）",
+        paidPlans: "AI Plus ¥725／AI Pro ¥2,900／AI Ultra ¥14,500〜32,000（1日1,000枚程度）",
+        beginnerFriendly: "日本語対応良好、無料枠が圧倒的に多くアプリも充実",
+        tags: ["photo", "textimage", "business", "social"],
+        scores: { quality: 5, speed: 4, value: 5, japanese: 4 },
+        hasUpperTier: true,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            photo: "写真のようにリアルな画像生成も得意です。",
+            textimage: "文字入りの画像生成にも対応しています。",
+            business: "商品・広告などビジネス向けの画像作成にも使えます。",
+            social: "SNS用の画像やサムネイル作りにも向いています。"
+          },
+          budget: {
+            A: "無料でも1日100枚程度生成できます（Nano Banana 2、一部4K対応）。",
+            B: "AI Plusプラン(¥725)から低価格で始められます。",
+            C: "AI Ultraプラン(¥14,500〜32,000)で1日1,000枚程度まで生成できます。"
+          },
+          priority: {
+            quality: "画質はトップクラスで、4K対応の生成も可能です。",
+            speed: "生成スピードもテンポよく仕上がります。",
+            value: "無料枠が圧倒的に多く、コスパに優れています。",
+            japanese: "画像内の日本語表示にも対応していますが、文字の精度はChatGPTに一歩譲ります。"
+          },
+          commercial: {
+            A: "Geminiアプリ経由のビジネス利用には著作権侵害の補償がない点に注意が必要です（Workspace/Vertex AI経由が規約上推奨）。",
+            B: "個人利用なら無料枠だけでも十分楽しめます。"
+          }
+        },
+        risk: "個人利用は商用可だが、Geminiアプリ経由のビジネス利用には著作権侵害の補償なし（Workspace/Vertex AI経由が規約上推奨）。"
+      },
+      {
+        name: "Grok Imagine",
+        officialUrl: "grok.com",
+        freePlan: "無料プランなし（2026年3月廃止）",
+        paidPlans: "SuperGrok Lite $10／SuperGrok $30",
+        beginnerFriendly: "UIはシンプルだが無料体験は不可",
+        tags: ["photo", "logo", "textimage", "illustration"],
+        scores: { quality: 4, speed: 4, value: 1, japanese: 1 },
+        hasUpperTier: true,
+        commercialAdjustA: -3,
+        reasonTemplates: {
+          usage: {
+            photo: "写真のようにリアルな画像生成に対応しています。",
+            logo: "ロゴ・アイコンなどデザイン素材の生成にも使えます。",
+            textimage: "文字入りの画像生成にも対応しています。",
+            illustration: "イラスト・キャラクター風の画像生成にも対応します。"
+          },
+          budget: {
+            A: "2026年3月に無料プランが廃止されており、無料では利用できません。",
+            B: "SuperGrok Lite($10)が最安プランで、月1,000〜3,000円の範囲では収まりにくい価格です。",
+            C: "SuperGrok($30)など上位プランで本格的に利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "生成スピードはテンポよく仕上がります。",
+            value: "無料プランがなく、コスパ重視には向きません。",
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
+          },
+          commercial: {
+            A: "ディープフェイク問題でEU/UK等が規制調査中のため、商用利用にはリスクがあります。",
+            B: "個人利用であれば規制面の懸念は比較的小さいです。"
+          }
+        },
+        risk: "2026年3月に無料プラン廃止。ディープフェイク問題でEU/UK等が規制調査中、コンテンツポリシーが頻繁に変更される。"
+      },
+      {
+        name: "Microsoft Designer",
+        officialUrl: "designer.microsoft.com",
+        freePlan: "月15クレジット（M365契約者は60クレジット）",
+        paidPlans: "Copilot Pro ¥2,990/月で1日100ブースト",
+        beginnerFriendly: "Bing Image Creator系で使いやすい",
+        tags: ["illustration", "logo", "social", "textimage"],
+        scores: { quality: 3, speed: 3, value: 4, japanese: 1 },
+        hasUpperTier: false,
+        commercialAdjustA: 1,
+        reasonTemplates: {
+          usage: {
+            illustration: "イラスト風の画像生成にも対応しています。",
+            logo: "ロゴ・アイコンなどデザイン素材の作成に向いています。",
+            social: "SNS用の画像やサムネイル作りにも使えます。",
+            textimage: "文字入りの画像生成にも対応しています。"
+          },
+          budget: {
+            A: "無料でも月15クレジット利用できます（M365契約者は60クレジット）。",
+            B: "Copilot Proプラン(¥2,990/月)で1日100ブーストまで使えます。",
+            C: "Copilot Proプランが上限で、本格的な課金には他サービスの方が選択肢が豊富です。"
+          },
+          priority: {
+            quality: "画質は標準的なクオリティです。",
+            speed: "生成スピードは標準的です。",
+            value: "クレジット制でコスパは中程度です。",
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
+          },
+          commercial: {
+            A: "2023年11月以降商用利用可で、ビジネス向け画像生成にも適しています。",
+            B: "個人利用でも無料クレジットの範囲で楽しめます。"
+          }
+        },
+        risk: "2023年11月以降商用利用可だが、第三者の商標・著名人に似た画像の生成は権利侵害リスクがあり注意。"
+      },
+      {
+        name: "Krea AI",
+        officialUrl: "krea.ai",
+        freePlan: "100 compute units/日（リアルタイム生成。※生成物は商用利用不可）",
+        paidPlans: "Basic $9/月（5,000units・商用利用可）／Pro $35／Max $70／Business $200",
+        beginnerFriendly: "リアルタイム生成キャンバスが直感的。日本語プロンプトは公式非対応（翻訳推奨）",
+        tags: ["photo", "illustration"],
+        scores: { quality: 4, speed: 5, value: 3, japanese: 1 },
+        hasUpperTier: true,
+        reasonTemplates: {
+          usage: {
+            photo: "リアルタイム生成キャンバスで写真のような画像も作れます。",
+            illustration: "イラスト風の画像生成にも対応しています。"
+          },
+          budget: {
+            A: "無料で100 compute units/日が使えますが、生成物は商用利用不可です。",
+            B: "Basicプラン($9/月)で5,000units・商用利用可になります。",
+            C: "Pro($35)やMax($70)など上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "リアルタイム生成キャンバスにより生成スピードはトップクラスです。",
+            value: "無料枠はありますが、商用利用不可な点に注意が必要です。",
+            japanese: "日本語プロンプトは公式非対応で、画像内に日本語の文字を入れるのも苦手です（文字が崩れやすい）。"
+          },
+          commercial: {
+            A: "無料プランの生成物は商用利用不可のため、商用利用にはBasic以上のプランが必須です。",
+            B: "個人利用なら無料プランの範囲でも楽しめます。"
+          }
+        },
+        risk: "無料プランの生成物は商用利用不可・ライセンスなし（商用利用には有料プランが必須）。日本語プロンプトは公式非対応。"
+      },
+      {
+        name: "Recraft",
+        officialUrl: "recraft.ai",
+        freePlan: "毎日30〜50クレジット程度（永続無料。※生成物は商用利用不可・公開扱い）",
+        paidPlans: "Basic $10（1,000クレジット）／Advanced $27／Pro $48／Teams $55/席",
+        beginnerFriendly: "日本語プロンプト対応が強み、Figma的UIで操作が直感的",
+        tags: ["logo", "business", "textimage", "social"],
+        scores: { quality: 4, speed: 3, value: 3, japanese: 1 },
+        hasUpperTier: true,
+        reasonTemplates: {
+          usage: {
+            logo: "ロゴ・アイコンなどデザイン素材の生成が得意で、Figma的UIで直感的に操作できます。",
+            business: "商品・広告などビジネス向けの画像作成にも対応できます。",
+            textimage: "文字入りの画像生成は日本語プロンプト対応が強みです。",
+            social: "SNS用の画像やサムネイル作りにも使えます。"
+          },
+          budget: {
+            A: "永続無料で毎日30〜50クレジット程度使えますが、生成物は商用利用不可・公開扱いです。",
+            B: "Basicプラン($10、1,000クレジット)で商用利用も可能になります。",
+            C: "Advanced($27)やPro($48)など上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "生成スピードは標準的です。",
+            value: "永続無料のクレジットがあり、コスパは良好です（商用利用不可な点に注意）。",
+            japanese: "指示は日本語で伝わりやすいですが、画像内に日本語の文字を正確に表示するのは苦手で、文字が崩れることが多いです。"
+          },
+          commercial: {
+            A: "無料プランの生成物は商用利用不可・公開扱いのため、商用利用には有料プランが必要です。",
+            B: "個人利用なら無料プランの範囲でも楽しめます。"
+          }
+        },
+        risk: "無料プランは生成物の所有権がRecraft側にあり、全て公開扱い・商用利用不可。著作権侵害時の責任は利用者負担。"
+      },
+      {
+        name: "ImagineArt",
+        officialUrl: "imagine.art",
+        freePlan: "毎日100クレジット付与（クレカ不要。※生成物はデフォルトで公開）",
+        paidPlans: "Basic ¥2,500程度／Standard $30／Ultimate $50／Creator $250",
+        beginnerFriendly: "操作はシンプル・30以上のモデルを切替可能だが、iOSアプリは英語UIのみとの報告あり",
+        tags: ["photo", "textimage", "social"],
+        scores: { quality: 4, speed: 4, value: 4, japanese: 1 },
+        hasUpperTier: true,
+        commercialAdjustA: -1,
+        reasonTemplates: {
+          usage: {
+            photo: "写真のようにリアルな画像づくりに対応しています。",
+            textimage: "文字入りの画像生成にも対応しています。",
+            social: "SNS用の画像やサムネイル作りに向いています。"
+          },
+          budget: {
+            A: "毎日100クレジットが無料で付与され、クレカ登録なしで試せます。",
+            B: "Basicプラン(¥2,500程度)で生成量を増やせます。",
+            C: "Standard($30)やUltimate($50)など上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準的なクオリティを保っています。",
+            speed: "生成スピードはテンポよく、待ち時間が少ないです。",
+            value: "毎日もらえる無料クレジットでコスパ良く使えます。",
+            japanese: "画像内に日本語の文字を入れるのは苦手で、文字が崩れたり読めなくなることが多いです。"
+          },
+          commercial: {
+            A: "無料プランの生成物はデフォルトで公開されるため、商用利用には有料プランが必要です。",
+            B: "個人利用なら無料プランの範囲でも十分楽しめます。"
+          }
+        },
+        risk: "無料プランの生成物はデフォルトで公開（コミュニティ公開）。iOSアプリは英語UIのみで日本語対応に課題の報告あり。"
+      }
+    ],
+    footerNote: "生成画像を商用利用する際は、各サービスの利用規約・ライセンス条件を必ずご確認ください"
+  },
+  video: {
+    label: "動画生成",
+    questions: [
+      {
+        text: "どんな動画を作りたい？",
+        options: [
+          { label: "SNS用の短い動画・ショート動画を作りたい", value: "social" },
+          { label: "アニメ・イラスト風の動画を作りたい", value: "illustration" },
+          { label: "写真みたいにリアルな実写風の動画を作りたい", value: "photo" },
+          { label: "商品紹介・広告などビジネス向けの動画を作りたい", value: "business" },
+          { label: "ストーリー性のある複数シーンの映像を作りたい", value: "story" },
+          { label: "セリフ・音声・BGM入りの動画を作りたい", value: "audio" }
+        ]
+      },
+      {
+        text: "予算は？",
+        options: [
+          { label: "無料で十分", value: "A" },
+          { label: "月1,000〜3,000円くらいまで", value: "B" },
+          { label: "しっかり課金してOK（本格利用）", value: "C" }
+        ]
+      },
+      {
+        text: "一番重視するのは？",
+        options: [
+          { label: "画質・クオリティ", value: "quality" },
+          { label: "生成スピード", value: "speed" },
+          { label: "コスパ・無料枠の多さ", value: "value" },
+          { label: "セリフ・音声・BGMまで自動で作れるか", value: "audio" }
+        ]
+      },
+      {
+        text: "実在する人物の顔を使った動画を作りたい？",
+        options: [
+          { label: "はい（自分や友人の写真、似た人物を動画に使いたい）", value: "A" },
+          { label: "いいえ（人物の顔は使わない・気にしない）", value: "B" }
+        ]
+      },
+      {
+        text: "作った動画を商用・仕事で使いたい？",
+        options: [
+          { label: "はい、商用・仕事で使う予定がある", value: "A" },
+          { label: "いいえ、個人利用（趣味・SNS投稿など）が中心", value: "B" }
+        ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
+      }
+    ],
+    services: [
+      {
+        name: "Google",
+        officialUrl: "gemini.google.com",
+        freePlan: "Geminiアプリで月数回程度の動画生成が無料（透かしあり）",
+        paidPlans: "AI Pro ¥2,900/月（生成数アップ）／AI Ultra ¥14,500〜32,000/月（Veo 3.1フル機能・Flowで本格制作）",
+        beginnerFriendly: "チャット感覚で使え日本語完全対応",
+        tags: ["photo", "business", "story", "audio"],
+        scores: { quality: 4, speed: 3, value: 2, audio: 5 },
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            photo: "写真のようにリアルな実写風の動画生成に対応しています。",
+            business: "商品紹介・広告などビジネス向け動画の制作にも使えます。",
+            story: "Flowを使えば複数シーンのストーリー性ある映像も作れます。",
+            audio: "セリフ・音声・BGMまで含めた動画生成に対応しています。"
+          },
+          budget: {
+            A: "Geminiアプリで月数回程度の動画生成が無料で試せます（透かしあり）。",
+            B: "AI Proプラン(¥2,900/月)で生成数を増やせます。",
+            C: "AI Ultraプラン(¥14,500〜32,000/月)でVeo 3.1のフル機能とFlowによる本格制作が可能です。"
+          },
+          priority: {
+            quality: "画質・クオリティは上位クラスです。",
+            speed: "生成スピードは標準的です。",
+            value: "無料枠は月数回程度と少なめです。",
+            audio: "セリフ・音声・BGM生成への対応はトップクラスです。"
+          },
+          likeness: {
+            A: "実在の人物・著名人の肖像を使う動画生成には厳格な制限があり、SynthIDの透かしも付与されます。",
+            B: "人物の顔を使わない用途であれば問題なく利用できます。"
+          },
+          commercial: {
+            A: "AI Ultraプランは高額ですが、Flowでの本格的な商用制作に対応しています。",
+            B: "個人利用なら無料枠やAI Proプランの範囲でも楽しめます。"
+          }
+        },
+        risk: "AI Ultraプランは高額（¥14,500〜32,000/月）。実在の人物・著名人の肖像を使う動画生成には厳格な制限があり、SynthIDによる透かしが付与される。"
+      },
+      {
+        name: "Grok Imagine",
+        officialUrl: "grok.com",
+        freePlan: "無料プランなし（2026年に廃止）",
+        paidPlans: "SuperGrok Lite $10/月／SuperGrok $30/月",
+        beginnerFriendly: "生成は高速だが無料体験不可、ポリシー変更が多い",
+        tags: ["social", "photo", "story"],
+        scores: { quality: 4, speed: 5, value: 2, audio: 2 },
+        likenessAdjustA: -2,
+        commercialAdjustA: -1,
+        reasonTemplates: {
+          usage: {
+            social: "SNS用の短い動画を高速に生成できます。",
+            photo: "写真のようにリアルな実写風の動画生成にも対応しています。",
+            story: "複数シーンのストーリー性ある映像制作にも使えます。"
+          },
+          budget: {
+            A: "2026年に無料プランが廃止されており、無料では利用できません。",
+            B: "SuperGrok Lite($10/月)が最安プランで、月1,000〜3,000円の範囲では収まりにくい価格です。",
+            C: "SuperGrok($30/月)で本格的に利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "生成スピードはトップクラスの速さです。",
+            value: "無料プランがなく、コスパ重視には向きません。",
+            audio: "セリフ・音声・BGM生成への対応はやや弱めです。"
+          },
+          likeness: {
+            A: "2026年のディープフェイク問題で規制リスクが大きく、実写人物の顔を使う動画生成は特に注意が必要です。",
+            B: "人物の顔を使わない用途であれば規制面の懸念は比較的小さいです。"
+          },
+          commercial: {
+            A: "EU/UK等で規制調査が進行中のため、商用利用にはリスクがあります。",
+            B: "個人利用であれば規制面の懸念は比較的小さいです。"
+          }
+        },
+        risk: "2026年にディープフェイク関連の問題が表面化し、EU/UK等で規制調査が進行中。実写人物の顔を使う動画生成は特に注意が必要。"
+      },
+      {
+        name: "Kling AI",
+        officialUrl: "klingai.com",
+        freePlan: "毎日クレジット付与（数本の短尺動画を生成可能）",
+        paidPlans: "Standard $6.99/月／Pro・Premier上位プラン",
+        beginnerFriendly: "Web UIが直感的で画質・表現力ともにトップクラス",
+        tags: ["photo", "illustration", "story", "business"],
+        scores: { quality: 5, speed: 3, value: 4, audio: 3 },
+        reasonTemplates: {
+          usage: {
+            photo: "写真のようにリアルな実写風の動画生成にも対応し、画質はトップクラスです。",
+            illustration: "アニメ・イラスト風の動画生成にも対応しています。",
+            story: "複数シーンのストーリー性ある映像制作にも強みがあります。",
+            business: "商品紹介・広告などビジネス向け動画の制作にも使えます。"
+          },
+          budget: {
+            A: "毎日クレジットが付与され、数本の短尺動画を無料で生成できます。",
+            B: "Standardプラン($6.99/月)と非常に低価格で始められます。",
+            C: "Pro・Premierなど上位プランで本格的に利用できます。"
+          },
+          priority: {
+            quality: "画質・表現力ともにトップクラスのクオリティです。",
+            speed: "生成スピードは標準的です。",
+            value: "毎日の無料クレジットがあり、コスパに優れています。",
+            audio: "セリフ・音声・BGM生成への対応は標準的です。"
+          },
+          likeness: {
+            A: "顔写真アップロード機能がありますが、悪用を禁止する規約があるものの運用は緩やかとの指摘もあるため注意が必要です。",
+            B: "人物の顔を使わない用途であれば問題なく利用できます。"
+          },
+          commercial: {
+            A: "中国企業のためデータの取り扱いに留意しつつ、商用利用も可能です。",
+            B: "個人利用であれば気軽に使えます。"
+          }
+        },
+        risk: "顔写真アップロード機能は悪用を禁止する規約があるが運用は緩やかとの指摘も。中国企業のためデータの取り扱いに留意。"
+      },
+      {
+        name: "PixVerse",
+        officialUrl: "pixverse.ai",
+        freePlan: "毎日クレジット付与（数本生成可能、無料分は商用利用不可）",
+        paidPlans: "Standard $10/月／Pro $30/月／Premium上位",
+        beginnerFriendly: "テンプレートが豊富でSNS向け動画を作りやすい",
+        tags: ["social", "illustration", "photo"],
+        scores: { quality: 4, speed: 4, value: 3, audio: 2 },
+        reasonTemplates: {
+          usage: {
+            social: "テンプレートが豊富でSNS向けのショート動画を作りやすいです。",
+            illustration: "アニメ・イラスト風の動画生成にも対応しています。",
+            photo: "写真のようにリアルな実写風の動画生成にも対応しています。"
+          },
+          budget: {
+            A: "毎日クレジットが付与され、数本の動画を無料で生成できますが、無料分は商用利用不可です。",
+            B: "Standardプラン($10/月)で生成量を増やせます。",
+            C: "Pro($30/月)やPremiumなど上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "生成スピードはテンポよく仕上がります。",
+            value: "毎日の無料クレジットがあり、コスパは良好です。",
+            audio: "セリフ・音声・BGM生成への対応はやや弱めです。"
+          },
+          likeness: {
+            A: "フェイススワップ・リップシンク機能があり、実写人物の顔を使った動画も作成できます。",
+            B: "人物の顔を使わない用途でも、テンプレートを活かして手軽に作れます。"
+          },
+          commercial: {
+            A: "無料プランの生成物は公開され商用利用不可のため、商用利用には有料プランが必要です。",
+            B: "個人利用なら無料プランの範囲でも十分楽しめます。"
+          }
+        },
+        risk: "フェイススワップ・リップシンク機能あり。無料プランの生成物は公開され商用利用不可。"
+      },
+      {
+        name: "Vidu",
+        officialUrl: "vidu.com",
+        freePlan: "毎日クレジット付与（数本生成可能）",
+        paidPlans: "Standard $10/月／Pro上位プラン",
+        beginnerFriendly: "キャラクターの一貫性維持機能が使いやすい",
+        tags: ["illustration", "story", "social"],
+        scores: { quality: 4, speed: 4, value: 3, audio: 2 },
+        reasonTemplates: {
+          usage: {
+            illustration: "アニメ・イラスト風の動画生成にも対応しています。",
+            story: "キャラクターの一貫性維持機能により、複数シーンのストーリー制作に向いています。",
+            social: "SNS向けのショート動画づくりにも使えます。"
+          },
+          budget: {
+            A: "毎日クレジットが付与され、数本の動画を無料で生成できます。",
+            B: "Standardプラン($10/月)で生成量を増やせます。",
+            C: "Pro上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準以上のクオリティです。",
+            speed: "生成スピードはテンポよく仕上がります。",
+            value: "毎日の無料クレジットがあり、コスパは良好です。",
+            audio: "セリフ・音声・BGM生成への対応はやや弱めです。"
+          },
+          likeness: {
+            A: "キャラクター参照機能により実写人物の顔も利用できますが、中国企業のためデータの取り扱いに留意が必要です。",
+            B: "人物の顔を使わない用途であれば、キャラクターの一貫性維持機能を活かせます。"
+          },
+          commercial: {
+            A: "中国企業のためデータの取り扱いに留意しつつ、商用利用も検討できます。",
+            B: "個人利用であれば気軽に使えます。"
+          }
+        },
+        risk: "キャラクター参照機能で実写人物の顔も利用可能。中国企業のためデータの取り扱いに留意。"
+      },
+      {
+        name: "Dreamina",
+        officialUrl: "dreamina.capcut.com",
+        freePlan: "毎日クレジット付与（比較的多め）",
+        paidPlans: "Basic $15/月／上位プランあり",
+        beginnerFriendly: "CapCut連携でSNS投稿までスムーズ",
+        tags: ["illustration", "social", "business", "audio"],
+        scores: { quality: 5, speed: 4, value: 4, audio: 4 },
+        likenessAdjustA: -3,
+        commercialAdjustA: -2,
+        reasonTemplates: {
+          usage: {
+            illustration: "アニメ・イラスト風の動画づくりに強みがあります。",
+            social: "SNS向けのショート動画もCapCut連携でスムーズに作れます。",
+            business: "商品紹介などビジネス向け動画にも対応できます。",
+            audio: "セリフ・音声・BGM入りの動画生成にも対応しています。"
+          },
+          budget: {
+            A: "毎日付与される無料クレジットで比較的多めに生成を試せます。",
+            B: "Basicプラン($15/月)で生成量を増やせます。",
+            C: "上位プランでさらに本格的な制作ができます。"
+          },
+          priority: {
+            quality: "画質はトップクラスのクオリティです。",
+            speed: "生成スピードもテンポよく仕上がります。",
+            value: "無料クレジットが多めでコスパが良いです。",
+            audio: "セリフ・音声・BGMまで自動で作れるのが強みです。"
+          },
+          likeness: {
+            A: "実写人物の顔写真アップロードは規約で禁止されているため、目的を果たせない可能性があります。",
+            B: "人物の顔を使わない用途であれば問題なく利用できます。"
+          },
+          commercial: {
+            A: "有料プランでも規約上「個人利用が主」とされており、商用利用には注意が必要です。",
+            B: "個人利用（趣味・SNS投稿）であれば安心して使えます。"
+          }
+        },
+        risk: "実写人物の顔写真アップロードは規約で禁止（なりすまし対策）。有料プランでも規約上「個人利用が主」とされ商用利用には注意。ByteDance（中国企業）のためデータの取り扱いに留意。"
+      },
+      {
+        name: "LTX Studio",
+        officialUrl: "ltx.studio",
+        freePlan: "少量のクレジットで試用可（透かしあり）",
+        paidPlans: "Lite $15/月（個人利用）／Standard $35/月（商用利用可）／Pro上位プラン",
+        beginnerFriendly: "ストーリーボード形式で複数シーンの映像制作に強い",
+        tags: ["story", "business", "audio"],
+        scores: { quality: 3, speed: 2, value: 2, audio: 3 },
+        likenessAdjustA: -1,
+        commercialAdjustA: -2,
+        reasonTemplates: {
+          usage: {
+            story: "ストーリーボード形式で複数シーンの映像制作に強みがあります。",
+            business: "商品紹介・広告などビジネス向け動画の制作にも使えます（商用利用にはStandard以上が必要）。",
+            audio: "セリフ・音声・BGM生成にも対応しています。"
+          },
+          budget: {
+            A: "少量のクレジットで試用できますが、透かしが入ります。",
+            B: "Liteプラン($15/月、個人利用)から始められます。",
+            C: "Standard($35/月、商用利用可)やPro上位プランで本格利用できます。"
+          },
+          priority: {
+            quality: "画質は標準的なクオリティです。",
+            speed: "生成スピードはやや控えめです。",
+            value: "無料分は少量で透かしも入るため、コスパ重視には不向きです。",
+            audio: "セリフ・音声・BGM生成にもストーリーボード形式で対応しています。"
+          },
+          likeness: {
+            A: "過去にFaceSwitch機能で実写人物の顔の取り扱いに懸念が指摘されたことがあるため、注意が必要です。",
+            B: "人物の顔を使わない用途であれば、ストーリーボード形式の制作機能を活かせます。"
+          },
+          commercial: {
+            A: "無料/Liteプランの生成物は個人利用限定のため、商用利用にはStandard以上($35/月)が必要です。",
+            B: "個人利用ならLiteプラン($15/月)から始められます。"
+          }
+        },
+        risk: "無料/Liteプランの生成物は個人利用限定（商用利用にはStandard以上が必要）。過去にFaceSwitch機能で実写人物の顔の取り扱いに懸念が指摘されたことがある。"
+      }
+    ],
+    footerNote: "実写人物の顔を使う場合は本人の同意やなりすまし防止に関する各サービスの規約を、商用利用する場合は利用規約・ライセンス条件をあわせてご確認ください"
+  },
+  coding: {
+    label: "コーディング",
+    questions: [
+      {
+        text: "何をしたい？",
+        options: [
+          { label: "プログラミングの勉強・わからないことを質問したい", value: "learn" },
+          { label: "ふだん使っているエディタでコード補完・提案を受けたい", value: "autocomplete" },
+          { label: "「こんなアプリ・ツールが欲しい」と伝えて作ってもらいたい（バイブコーディング）", value: "vibe" },
+          { label: "既存コードのバグ修正・リファクタリングを手伝ってほしい", value: "debug" },
+          { label: "プログラミングなしでWebサービス・アプリを作りたい", value: "nocode" },
+          { label: "ちょっとした自動化スクリプトを作りたい", value: "automation" }
+        ]
+      },
+      {
+        text: "予算は？",
+        options: [
+          { label: "無料で十分", value: "A" },
+          { label: "月1,000〜3,000円くらいまで", value: "B" },
+          { label: "しっかり課金してOK（本格利用）", value: "C" }
+        ]
+      },
+      {
+        text: "一番重視するのは？",
+        options: [
+          { label: "コードの正確さ・品質", value: "quality" },
+          { label: "返答スピード・テンポ", value: "speed" },
+          { label: "無料でどれだけ使えるか", value: "value" },
+          { label: "どこまでAIにお任せできるか（自動化・エージェント度）", value: "autonomy" }
+        ]
+      },
+      {
+        text: "ターミナルやエディタへのインストールが必要でも平気？",
+        options: [
+          { label: "できればブラウザだけで完結させたい", value: "A" },
+          { label: "ターミナル・エディタへのインストールは平気", value: "B" }
+        ]
+      },
+      {
+        text: "自分のコードを外部のAIサービスに渡すことについて",
+        options: [
+          { label: "とても気になる", value: "A" },
+          { label: "それほど気にしない", value: "B" }
+        ]
+      },
+      {
+        text: "AIツールを使うのは初めて、またはあまり詳しくない？",
+        options: [
+          { label: "はい、あまり詳しくない（聞いたことのある有名なサービスがいい）", value: "A" },
+          { label: "いいえ、ある程度使ったことがある", value: "B" }
+        ]
+      }
+    ],
+    services: [
+      {
+        name: "GitHub Copilot",
+        officialUrl: "github.com/features/copilot",
+        freePlan: "月2,000回のコード補完＋月50回のチャット・編集（クレカ不要）",
+        paidPlans: "Pro $10/月（約1,500円）／Pro+ $39/月／Max $100/月",
+        beginnerFriendly: "VS Code拡張機能を入れてGitHubでログインするだけ",
+        tags: ["autocomplete", "debug", "learn"],
+        scores: { quality: 4, speed: 5, value: 4, autonomy: 3 },
+        cheapEntry: true,
+        hasUpperTier: true,
+        environmentAdjustA: -1,
+        reasonTemplates: {
+          usage: {
+            autocomplete: "ふだん使っているエディタでのコード補完・提案に最も特化しています。",
+            debug: "既存コードのバグ修正やリファクタリングの提案にも対応します。",
+            learn: "コードの説明をしながら補完してくれるので学習にも使えます。"
+          },
+          budget: {
+            A: "無料でも月2,000回のコード補完＋月50回のチャット・編集が使えます（クレカ不要）。",
+            B: "Proプラン($10/月、約1,500円)で利用上限を増やせます。",
+            C: "Pro+($39/月)やMax($100/月)で大幅に利用上限を増やせます。"
+          },
+          priority: {
+            quality: "正確さ・品質は標準以上で、補完の精度が高いです。",
+            speed: "返答スピード・テンポはトップクラスです。",
+            value: "無料枠だけでも基本的な補完作業には十分使えます。",
+            autonomy: "自動化・エージェント度は標準的で、補完中心の支援です。"
+          },
+          environment: {
+            A: "エディタへの拡張機能インストールが必要なため、ブラウザだけで完結させたい人にはやや不向きです。",
+            B: "エディタに拡張機能を入れるだけで使い始められ、導入の手間は少なめです。"
+          },
+          privacy: {
+            A: "2026年4月以降、無料/Pro/Pro+の利用データはデフォルトで学習に使われる設定になっています（オプトアウト可）。",
+            B: "コードを外部AIに渡すことを気にしないなら、手軽に導入できます。"
+          }
+        },
+        risk: "2026年4月以降、無料/Pro/Pro+の利用データはデフォルトで学習に使われる設定に変更（オプトアウト可）。価格・プラン体系の変更が頻繁。"
+      },
+      {
+        name: "Cursor",
+        officialUrl: "cursor.com",
+        freePlan: "Hobbyプラン：月2,000回のコード補完＋月50回のプレミアムモデル利用",
+        paidPlans: "Pro $20/月（約3,000円）／Pro+ $60/月／Ultra $200/月",
+        beginnerFriendly: "VS Codeベースの専用エディタをインストール、日本語UI対応",
+        tags: ["autocomplete", "vibe", "debug", "automation"],
+        scores: { quality: 5, speed: 4, value: 3, autonomy: 4 },
+        cheapEntry: true,
+        hasUpperTier: true,
+        environmentAdjustA: -2,
+        privacyAdjustA: 1,
+        nonSelfCoderPenalty: -2,
+        reasonTemplates: {
+          usage: {
+            autocomplete: "ふだん使うエディタ感覚でのコード補完・提案に対応しています。",
+            vibe: "「こんなアプリが欲しい」という要望からコードを生成する使い方にも対応します。",
+            debug: "既存コードのバグ修正・リファクタリングを手伝ってくれます。",
+            automation: "複数ファイルにまたがる自動化作業にも対応できます。"
+          },
+          budget: {
+            A: "Hobbyプランで月2,000回のコード補完＋月50回のプレミアムモデル利用が無料です。",
+            B: "Proプラン($20/月、約3,000円)でプレミアムモデルの利用上限を増やせます。",
+            C: "Pro+($60/月)やUltra($200/月)で大幅に利用上限を増やせます。"
+          },
+          priority: {
+            quality: "正確さ・品質はトップクラスで、複雑なコード生成にも強いです。",
+            speed: "返答スピード・テンポも比較的良好です。",
+            value: "無料のHobbyプランでも基本的な補完作業には対応できます。",
+            autonomy: "自動化・エージェント度は高く、複数ファイルの編集も任せられます。"
+          },
+          environment: {
+            A: "VS Codeベースの専用エディタのインストールが必須なため、ブラウザだけで完結させたい人には不向きです。",
+            B: "専用エディタのインストールに抵抗がなければ、日本語UIで使いやすいです。"
+          },
+          privacy: {
+            A: "プライバシーモードでゼロデータ保持に設定できるため、コードを外部AIに渡す抵抗を軽減できます。",
+            B: "無料/Proはデフォルトで最大30日データ保存される点は把握しておくとよいです。"
+          }
+        },
+        risk: "2025年の価格体系変更で「有料プランでも使える量が予想より少ない」と大きな反発があった経緯あり。無料/Proはデフォルトで最大30日データ保存。"
+      },
+      {
+        name: "Claude Code",
+        officialUrl: "claude.com/product/claude-code",
+        freePlan: "なし（Claude Pro以上のプランが必須）",
+        paidPlans: "Pro $20/月（約3,000円）／Max 5x $100/月／Max 20x $200/月",
+        beginnerFriendly: "2026年からネイティブインストーラー・デスクトップアプリ・Web版も登場",
+        tags: ["vibe", "debug", "automation", "learn"],
+        scores: { quality: 5, speed: 3, value: 1, autonomy: 5 },
+        cheapEntry: true,
+        hasUpperTier: true,
+        environmentAdjustA: -2,
+        reasonTemplates: {
+          usage: {
+            vibe: "「こんなアプリが欲しい」という要望から、自律的にコードを書き上げてくれます。",
+            debug: "既存コードのバグ修正やリファクタリングを任せられます。",
+            automation: "複数ファイルにまたがる自動化作業も自律的に進めてくれます。",
+            learn: "コードの説明をしながら進めてくれるので学習にも使えます。"
+          },
+          budget: {
+            A: "無料プランはなく、利用にはClaude Pro以上の契約が必須です。",
+            B: "Proプラン($20/月、約3,000円)から利用できます。",
+            C: "Max 5x/20xプランでさらに多くの作業をAIに任せられます。"
+          },
+          priority: {
+            quality: "コードの正確さ・品質はトップクラスです。",
+            speed: "テンポはやや控えめですが、その分じっくり考えて出力します。",
+            value: "無料プランがないため、コスパ重視には向きません。",
+            autonomy: "自動化・エージェント度が非常に高く、AIにお任せできる範囲が広いです。"
+          },
+          environment: {
+            A: "専用のターミナル・CLI環境のインストールが必須なため、ブラウザだけで完結させたい人には不向きです。",
+            B: "ターミナルやエディタへのインストールに抵抗がなければ、自律的な開発体験を活かせます。"
+          },
+          privacy: {
+            A: "コードを外部AIサービスに渡すことに特別な軽減策はないため、機密性の高いコードの扱いには注意が必要です。",
+            B: "コードを外部AIに渡すことを気にしないなら、自律的な開発支援を存分に活用できます。"
+          }
+        },
+        risk: "無料プランなし（Pro以上が必須）。自律的にファイルの作成・変更・削除を行うため、誤操作でファイルが削除された事例が複数報告されている。"
+      },
+      {
+        name: "Codex",
+        officialUrl: "chatgpt.com/codex",
+        freePlan: "ChatGPT Freeに含まれる（利用回数の上限は低め）",
+        paidPlans: "ChatGPT Plus $20/月（約3,000円）／Pro $100〜/月",
+        beginnerFriendly: "ChatGPTのサイドバーからすぐ使える、ゼロセットアップ",
+        tags: ["vibe", "debug", "automation", "learn"],
+        scores: { quality: 5, speed: 4, value: 4, autonomy: 5 },
+        cheapEntry: true,
+        hasUpperTier: true,
+        environmentAdjustA: 1,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            vibe: "「こんなアプリが欲しい」という要望から、ChatGPTのサイドバーで自動的にコードを書き上げてくれます。",
+            debug: "既存コードのバグ修正やリファクタリングを任せられます。",
+            automation: "複数ファイルにまたがる自動化作業も自動で進めてくれます。",
+            learn: "コードの説明をしながら進めてくれるので学習にも使えます。"
+          },
+          budget: {
+            A: "ChatGPT Freeに含まれており、無料で試せます（利用回数の上限は低め）。",
+            B: "ChatGPT Plus($20/月、約3,000円)で利用上限を増やせます。",
+            C: "Pro($100〜/月)でさらに多くの作業をAIに任せられます。"
+          },
+          priority: {
+            quality: "正確さ・品質はトップクラスです。",
+            speed: "返答スピード・テンポも良好です。",
+            value: "ChatGPT Freeの範囲でも気軽に試せます。",
+            autonomy: "自動化・エージェント度が非常に高く、AIにお任せできる範囲が広いです。"
+          },
+          environment: {
+            A: "ChatGPTのサイドバーからすぐ使えるブラウザ版が主軸で、ゼロセットアップで始められます。",
+            B: "デスクトップ版も用意されており、ターミナル操作に抵抗がなければさらに活用できます。"
+          },
+          privacy: {
+            A: "コードを外部AIサービスに渡すことに特別な軽減策はなく、個人プラン(Plus)はデフォルトで学習に使われます（オプトアウト可）。",
+            B: "コードを外部AIに渡すことを気にしないなら、ゼロセットアップで手軽に使えます。"
+          }
+        },
+        risk: "デスクトップ版で予期しないファイル削除事故やトークン窃取事件が報告されている。個人プラン(Plus)はデフォルトで学習に使われる（オプトアウト可）。"
+      },
+      {
+        name: "Replit",
+        officialUrl: "replit.com",
+        freePlan: "ブラウザのみで利用可。毎日少量のAgentクレジット＋月1,200分の実行時間",
+        paidPlans: "Core $25/月（約3,800円）／Pro $100/月",
+        beginnerFriendly: "ブラウザだけで完結、日本語の指示でアプリ作成からデプロイまでAgentが自動化",
+        tags: ["nocode", "vibe", "learn", "automation"],
+        scores: { quality: 3, speed: 4, value: 3, autonomy: 5 },
+        cheapEntry: false,
+        hasUpperTier: true,
+        environmentAdjustA: 2,
+        privacyAdjustA: 1,
+        reasonTemplates: {
+          usage: {
+            nocode: "プログラミングなしで、日本語の指示からWebサービス・アプリを作成できます。",
+            vibe: "「こんなアプリが欲しい」という要望から、Agentが自動的にアプリ作成からデプロイまで行います。",
+            learn: "作成過程を見ながら進められるので学習にも使えます。",
+            automation: "ちょっとした自動化スクリプトの作成にも対応できます。"
+          },
+          budget: {
+            A: "ブラウザのみで利用可能で、毎日少量のAgentクレジット＋月1,200分の実行時間が無料です。",
+            B: "Coreプラン($25/月、約3,800円)で利用量を増やせます。",
+            C: "Pro($100/月)で本格的な開発にも対応できます。"
+          },
+          priority: {
+            quality: "正確さ・品質は標準的ですが、Agentによる自動化で補えます。",
+            speed: "返答スピード・テンポは良好です。",
+            value: "無料のAgentクレジットと実行時間で気軽に試せます。",
+            autonomy: "自動化・エージェント度が非常に高く、アプリ作成からデプロイまで自動化できます。"
+          },
+          environment: {
+            A: "ブラウザのみで完結し、インストールが不要なので最適です。",
+            B: "ターミナル・エディタへのインストールに抵抗がなくても、ブラウザ完結の手軽さを活かせます。"
+          },
+          privacy: {
+            A: "非公開プロジェクトはデフォルトで学習対象外のため、コードを外部AIに渡す抵抗を軽減できます。",
+            B: "コードを外部AIに渡すことを気にしないなら、Agentによる自動化を存分に活用できます。"
+          }
+        },
+        risk: "2025年、AIエージェントが本番データベースを削除し報告を改ざんする事故が発生し話題に。重要なデータを扱う際は権限設定の確認が必要。"
+      },
+      {
+        name: "Antigravity",
+        officialUrl: "antigravity.google",
+        freePlan: "パブリックプレビュー中は無料（Gemini 3 Pro、レート制限あり）",
+        paidPlans: "Google AI Pro ¥2,900/月／AI Ultra ¥14,500〜32,000/月",
+        beginnerFriendly: "VS Codeフォークの専用デスクトップアプリをダウンロードする必要がある",
+        tags: ["vibe", "debug", "automation"],
+        scores: { quality: 4, speed: 3, value: 4, autonomy: 5 },
+        cheapEntry: true,
+        hasUpperTier: true,
+        environmentAdjustA: -2,
+        privacyAdjustA: -1,
+        wellKnown: true,
+        reasonTemplates: {
+          usage: {
+            vibe: "「こんなアプリが欲しい」という要望から、Gemini 3 Pro採用のエージェントが開発を進めます。",
+            debug: "既存コードのバグ修正・リファクタリングを任せられます。",
+            automation: "複数ファイルにまたがる自動化作業にも対応できます。"
+          },
+          budget: {
+            A: "パブリックプレビュー中は無料で利用できます（Gemini 3 Pro、レート制限あり）。",
+            B: "Google AI Proプラン(¥2,900/月)で利用上限を増やせます。",
+            C: "AI Ultraプラン(¥14,500〜32,000/月)で本格的に利用できます。"
+          },
+          priority: {
+            quality: "正確さ・品質は標準以上です。",
+            speed: "返答スピード・テンポは標準的です。",
+            value: "パブリックプレビュー中は無料で使えるコスパの良さが魅力です。",
+            autonomy: "自動化・エージェント度が高く、開発作業を広く任せられます。"
+          },
+          environment: {
+            A: "VS Codeフォークの専用デスクトップアプリのダウンロードが必須なため、ブラウザだけで完結させたい人には不向きです。",
+            B: "専用デスクトップアプリのインストールに抵抗がなければ、エージェント型の開発環境を活用できます。"
+          },
+          privacy: {
+            A: "個人データが収集され人間レビューに使われる可能性が明記されているため、コードを外部AIに渡す抵抗が強い場合は注意が必要です。",
+            B: "コードを外部AIに渡すことを気にしないなら、パブリックプレビュー中の無料利用を活かせます。"
+          }
+        },
+        risk: "2026年6月時点でパブリックプレビュー中（前身のGemini Code Assistから移行直後）。今後機能・価格が大きく変わる可能性が高い。"
+      },
+      {
+        name: "bolt.new",
+        officialUrl: "bolt.new",
+        freePlan: "1日30万トークン・月100万トークンまで（Boltブランディング表示あり）",
+        paidPlans: "Pro $25/月（約3,800円、月1,000万トークン）",
+        beginnerFriendly: "ブラウザのみで登録後すぐ使え、日本語プロンプトでアプリ生成",
+        tags: ["nocode", "vibe"],
+        scores: { quality: 3, speed: 4, value: 3, autonomy: 4 },
+        cheapEntry: false,
+        hasUpperTier: false,
+        environmentAdjustA: 2,
+        reasonTemplates: {
+          usage: {
+            nocode: "プログラミングなしで、日本語プロンプトからWebアプリを生成できます。",
+            vibe: "「こんなアプリが欲しい」という要望から、ブラウザだけでアプリを生成できます。"
+          },
+          budget: {
+            A: "1日30万トークン・月100万トークンまで無料で利用できます（Boltブランディング表示あり）。",
+            B: "Proプラン($25/月、約3,800円、月1,000万トークン)が最安の有料プランです。",
+            C: "Proプランが上限で、本格的な課金には他サービスの方が選択肢が豊富です。"
+          },
+          priority: {
+            quality: "正確さ・品質は標準的です。",
+            speed: "返答スピード・テンポは良好です。",
+            value: "無料トークンの範囲で気軽に試せます。",
+            autonomy: "自動化・エージェント度は高く、アプリ生成を自動で進めてくれます。"
+          },
+          environment: {
+            A: "ブラウザのみで登録後すぐ使え、インストールが不要なので最適です。",
+            B: "ターミナル・エディタへのインストールに抵抗がなくても、ブラウザ完結の手軽さを活かせます。"
+          },
+          privacy: {
+            A: "コードを外部AIサービスに渡すことに特別な軽減策はないため、機密性の高いプロジェクトの扱いには注意が必要です。",
+            B: "コードを外部AIに渡すことを気にしないなら、ブラウザだけで手軽にアプリ生成を試せます。"
+          }
+        },
+        risk: "エラー修正の繰り返しでトークンを大量消費しやすく、無料枠を使い切りやすい。プロジェクトを「公開」設定にすると誰でもコードを閲覧可能になる。"
+      }
+    ],
+    footerNote: "AIエージェントはファイルの作成・変更・削除を自律的に行うことがあります。重要なファイルは必ずバックアップを取り、最初は「実行前に確認」の設定で使うことをおすすめします。コードの学習利用に関するプライバシー設定も各サービスでご確認ください"
+  }
+};
+
+function budgetScore(categoryKey, q2, service) {
+  switch (categoryKey) {
+    case 'llm':
+      if (service.noPaidPlan) return service.scores.value;
+      if (q2 === 'A') return service.scores.value;
+      if (q2 === 'B') return service.cheapEntry ? 3 : 1;
+      return service.topTier ? 3 : 1;
+    case 'image':
+      if (q2 === 'A') return service.scores.value;
+      if (q2 === 'B') return 3;
+      return service.hasUpperTier ? 3 : 1;
+    case 'video':
+      if (q2 === 'A') return service.scores.value;
+      return 3;
+    case 'coding':
+      if (q2 === 'A') return service.scores.value;
+      if (q2 === 'B') return service.cheapEntry ? 3 : 1;
+      return service.hasUpperTier ? 3 : 1;
+  }
+}
+
+function extraAdjust(categoryKey, service, answers) {
+  switch (categoryKey) {
+    case 'llm':
+      return (answers.q4 === 'A' && service.highPrivacyRisk) ? -10 : 0;
+    case 'image':
+      return answers.q4 === 'A' ? (service.commercialAdjustA || 0) : 0;
+    case 'video':
+      return (answers.q4 === 'A' ? (service.likenessAdjustA || 0) : 0)
+           + (answers.q5 === 'A' ? (service.commercialAdjustA || 0) : 0);
+    case 'coding':
+      return (answers.q4 === 'A' ? (service.environmentAdjustA || 0) : 0)
+           + (answers.q5 === 'A' ? (service.privacyAdjustA || 0) : 0)
+           + (answers.q1 !== 'autocomplete' ? (service.nonSelfCoderPenalty || 0) : 0);
+  }
+}
+
+function familiarityAdjust(categoryKey, service, answers) {
+  const familiarityKey = (categoryKey === 'llm' || categoryKey === 'image') ? 'q5' : 'q6';
+  return (answers[familiarityKey] === 'A' && service.wellKnown) ? 4 : 0;
+}
+
+function scoreService(categoryKey, service, answers) {
+  let score = 0;
+  if (service.tags.indexOf(answers.q1) !== -1) score += 3;
+  score += budgetScore(categoryKey, answers.q2, service);
+  score += service.scores[answers.q3];
+  score += extraAdjust(categoryKey, service, answers);
+  score += familiarityAdjust(categoryKey, service, answers);
+  return score;
+}
+
+const DEFAULT_USAGE_REASON = "幅広い用途に対応できるオールラウンドな選択肢です。";
+
+function buildReasons(categoryKey, service, answers) {
+  const r = service.reasonTemplates;
+  const reasons = [];
+  reasons.push(r.usage[answers.q1] || DEFAULT_USAGE_REASON);
+  reasons.push(r.budget[answers.q2]);
+  reasons.push(r.priority[answers.q3]);
+  if (categoryKey === 'image') {
+    reasons.push(r.commercial[answers.q4]);
+  } else if (categoryKey === 'video') {
+    reasons.push(r.likeness[answers.q4]);
+    reasons.push(r.commercial[answers.q5]);
+  } else if (categoryKey === 'coding') {
+    reasons.push(r.environment[answers.q4]);
+    reasons.push(r.privacy[answers.q5]);
+  }
+  return reasons;
+}
+
+function rankServices(categoryKey, answers) {
+  const category = CATEGORIES[categoryKey];
+  return category.services
+    .map(function (service, index) {
+      return { service: service, index: index, score: scoreService(categoryKey, service, answers) };
+    })
+    .sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.index - b.index;
+    });
+}
+
+function buildBudgetAdvice(q2) {
+  switch (q2) {
+    case 'A':
+      return '💰 こんな時は課金を検討しても良いかも: 無料枠を毎日使い切ってしまう / もっと高精度な回答や生成物が欲しい / 仕事の効率化に時間を使いたい。月1,000円台のプランから試すのがおすすめです。';
+    case 'B':
+      return '💰 上記のおすすめプランで十分な体験が得られる予算感です。さらに使い込みたくなったら上位プランへのアップグレードを検討してみましょう。';
+    case 'C':
+      return '💰 本格利用なら上位プランの性能をフルに活かせます。ただし複数サービスを契約しすぎるとコストが膨らむので、まずは1つに絞って使い込むのがおすすめです。';
+  }
+}
+
+function renderResultsHtml(category, ranked) {
+  const first = ranked[0];
+  const rest = ranked.slice(1);
+
+  const firstHtml =
+    '<div class="result-first">' +
+    '<div class="result-rank">1位 おすすめ</div>' +
+    '<h2>' + first.service.name + '</h2>' +
+    '<div class="result-plan">無料: ' + first.service.freePlan + '<br>有料: ' + first.service.paidPlans + '</div>' +
+    '<ul class="result-reasons">' +
+      buildReasons(state.categoryKey, first.service, state.answers).map(function (r) { return '<li>' + r + '</li>'; }).join('') +
+    '</ul>' +
+    '<div class="result-risk">⚠️ ' + first.service.risk + '</div>' +
+    '<div class="result-budget-advice">' + buildBudgetAdvice(state.answers.q2) + '</div>' +
+    '<div class="actions-center"><a class="btn-primary" href="https://' + first.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a></div>' +
+    '</div>';
+
+  const othersHtml = '<div class="result-others">' + rest.map(function (entry, i) {
+    const reasons = buildReasons(state.categoryKey, entry.service, state.answers);
+    return '<div class="result-small">' +
+      '<div class="result-rank">' + (i + 2) + '位</div>' +
+      '<h3>' + entry.service.name + '</h3>' +
+      '<p>' + reasons[0] + '</p>' +
+      '<a class="btn-link small" href="https://' + entry.service.officialUrl + '" target="_blank" rel="noopener">公式サイトを見る</a>' +
+      '</div>';
+  }).join('') + '</div>';
+
+  return firstHtml + othersHtml + '<p class="footer-note">' + category.footerNote + '</p>';
+}
+
+const state = {
+  categoryKey: null,
+  questionIndex: 0,
+  answers: {}
+};
+
+const GENRE_ICONS = { llm: "💬", image: "🎨", video: "🎬", coding: "💻" };
+
+function scrollToLatest(el) {
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function removeLastMessage() {
+  const chat = document.getElementById('chat');
+  if (chat.lastElementChild) chat.lastElementChild.remove();
+}
+
+function addBotMessage(html, extraClass) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg bot' + (extraClass ? ' ' + extraClass : '');
+  msg.innerHTML = '<div class="avatar"></div><div class="bubble">' + html + '</div>';
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+  return msg;
+}
+
+function addUserMessage(text) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg user';
+  msg.innerHTML = '<div class="bubble user"></div>';
+  msg.querySelector('.bubble').textContent = text;
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+}
+
+function addQuickReplies(options, onSelect) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'quick-replies';
+  options.forEach(function (opt) {
+    const btn = document.createElement('button');
+    btn.className = 'quick-reply-btn' + (opt.value === '__back__' ? ' quick-reply-back' : '');
+    btn.textContent = opt.label;
+    btn.addEventListener('click', function () {
+      wrap.remove();
+      onSelect(opt);
+    });
+    wrap.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  scrollToLatest(wrap);
+}
+
+function showTyping(callback) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg bot';
+  msg.id = 'typing-indicator';
+  msg.innerHTML = '<div class="avatar"></div><div class="bubble typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(msg);
+  scrollToLatest(msg);
+  setTimeout(function () {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+    callback();
+  }, 500);
+}
+
+function buildProgressDots(currentIndex, total) {
+  let html = '<div class="progress-dots">';
+  for (let i = 0; i < total; i++) {
+    let cls = 'dot';
+    if (i < currentIndex) cls += ' done';
+    if (i === currentIndex) cls += ' active';
+    html += '<div class="' + cls + '"></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function startChat() {
+  const chat = document.getElementById('chat');
+  chat.innerHTML = '';
+  state.categoryKey = null;
+  state.questionIndex = 0;
+  state.answers = {};
+
+  const hero = document.createElement('div');
+  hero.className = 'msg bot hero';
+  hero.innerHTML =
+    '<img class="hero-img" src="' + NAKANO_IMG + '" alt="ナカノAI">' +
+    '<div class="bubble">やっほー!ナカノAIだよ✌️<br>AIツール選びを手伝うよ!</div>';
+  chat.appendChild(hero);
+  scrollToLatest(hero);
+
+  showGenreSelection();
+}
+
+function showGenreSelection() {
+  showTyping(function () {
+    addBotMessage('今日は何について知りたい?');
+    addQuickReplies(
+      Object.keys(CATEGORIES).map(function (key) {
+        return { value: key, label: GENRE_ICONS[key] + ' ' + CATEGORIES[key].label };
+      }),
+      function (opt) {
+        addUserMessage(opt.label);
+        selectGenre(opt.value);
+      }
+    );
+  });
+}
+
+function selectGenre(categoryKey) {
+  state.categoryKey = categoryKey;
+  state.questionIndex = 0;
+  state.answers = {};
+  askNextQuestion();
+}
+
+// removeCount: 直前に積まれたチャットバブルの数(質問・回答・結果カードなど)
+function goBackToQuestion(removeCount) {
+  for (let i = 0; i < removeCount; i++) removeLastMessage();
+  delete state.answers['q' + state.questionIndex];
+  state.questionIndex--;
+  askNextQuestion();
+}
+
+function goBackFromQuestion() {
+  if (state.questionIndex === 0) {
+    removeLastMessage(); // 現在の質問(Q1)の吹き出し
+    removeLastMessage(); // ジャンル選択で選んだ回答の吹き出し
+    removeLastMessage(); // 「今日は何について知りたい?」の吹き出し
+    state.categoryKey = null;
+    state.answers = {};
+    showGenreSelection();
+  } else {
+    goBackToQuestion(3);
+  }
+}
+
+function askNextQuestion() {
+  const category = CATEGORIES[state.categoryKey];
+  const question = category.questions[state.questionIndex];
+  const total = category.questions.length;
+
+  showTyping(function () {
+    addBotMessage(buildProgressDots(state.questionIndex, total) + '<div class="quiz-question-text">' + question.text + '</div>');
+    addQuickReplies(
+      question.options.concat([{ value: '__back__', label: '← 一つ前に戻る' }]),
+      function (opt) {
+        if (opt.value === '__back__') {
+          goBackFromQuestion();
+          return;
+        }
+        addUserMessage(opt.label);
+        selectAnswer(opt.value);
+      }
+    );
+  });
+}
+
+function selectAnswer(value) {
+  const qKey = 'q' + (state.questionIndex + 1);
+  state.answers[qKey] = value;
+  state.questionIndex++;
+  const category = CATEGORIES[state.categoryKey];
+  if (state.questionIndex < category.questions.length) {
+    askNextQuestion();
+  } else {
+    showResultMessage();
+  }
+}
+
+function goBackFromResult() {
+  goBackToQuestion(4);
+}
+
+function showResultMessage() {
+  const category = CATEGORIES[state.categoryKey];
+  const ranked = rankServices(state.categoryKey, state.answers).slice(0, 3);
+  showTyping(function () {
+    addBotMessage('よし、診断結果が出たよ!');
+    addBotMessage(renderResultsHtml(category, ranked), 'result');
+    addQuickReplies(
+      [
+        { value: 'restart', label: 'もう一度診断する 🔄' },
+        { value: '__back__', label: '← 一つ前に戻る' }
+      ],
+      function (opt) {
+        if (opt.value === '__back__') {
+          goBackFromResult();
+          return;
+        }
+        startChat();
+      }
+    );
+  });
+}
+
+function runSelfTests() {
+  let pass = 0, fail = 0;
+  function check(name, cond) {
+    if (cond) {
+      pass++;
+      console.log('PASS: ' + name);
+    } else {
+      fail++;
+      console.error('FAIL: ' + name);
+    }
+  }
+
+  let ranked = rankServices('llm', { q1: 'coding', q2: 'A', q3: 'value', q4: 'B' });
+  check('LLM: coding/無料/コスパ重視/プライバシー気にしない → DeepSeekが1位', ranked[0].service.name === 'DeepSeek');
+
+  ranked = rankServices('llm', { q1: 'coding', q2: 'A', q3: 'value', q4: 'A' });
+  check('LLM: プライバシー重視(Q4=A) → DeepSeekがトップ3から除外', ranked.slice(0, 3).every(function (r) { return r.service.name !== 'DeepSeek'; }));
+
+  ranked = rankServices('image', { q1: 'business', q2: 'A', q3: 'value', q4: 'A' });
+  check('画像生成: business/無料/コスパ重視/商用利用 → Geminiが1位', ranked[0].service.name === 'Gemini');
+
+  ranked = rankServices('image', { q1: 'photo', q2: 'C', q3: 'quality', q4: 'A' });
+  check('画像生成: photo/しっかり課金/画質重視/商用利用 → Geminiが1位', ranked[0].service.name === 'Gemini');
+  check('画像生成: 同条件でGrok Imagineは1位にならない', ranked[0].service.name !== 'Grok Imagine');
+
+  ranked = rankServices('video', { q1: 'audio', q2: 'A', q3: 'audio', q4: 'B', q5: 'B' });
+  check('動画生成: audio/無料/音声重視/実写顔なし/個人利用 → Dreaminaが1位', ranked[0].service.name === 'Dreamina');
+
+  ranked = rankServices('video', { q1: 'photo', q2: 'C', q3: 'quality', q4: 'A', q5: 'A' });
+  check('動画生成: photo/しっかり課金/画質重視/実写顔あり/商用利用 → Kling AIが1位', ranked[0].service.name === 'Kling AI');
+  check('動画生成: 同条件でGrok Imagineは1位にならない', ranked[0].service.name !== 'Grok Imagine');
+
+  ranked = rankServices('coding', { q1: 'nocode', q2: 'A', q3: 'value', q4: 'B', q5: 'B' });
+  check('コーディング: nocode/無料/コスパ重視/インストール平気/プライバシー気にしない → Replitが1位', ranked[0].service.name === 'Replit');
+  check('コーディング: 同条件でClaude Codeが最下位', ranked[ranked.length - 1].service.name === 'Claude Code');
+
+  ranked = rankServices('coding', { q1: 'vibe', q2: 'A', q3: 'value', q4: 'A', q5: 'A' });
+  check('コーディング: vibe/無料/コスパ重視/ブラウザのみ/プライバシー重視 → Codexが1位', ranked[0].service.name === 'Codex');
+  check('コーディング: 同条件でClaude Codeは1位にならない', ranked[0].service.name !== 'Claude Code');
+
+  ranked = rankServices('coding', { q1: 'vibe', q2: 'A', q3: 'quality', q4: 'B', q5: 'A', q6: 'B' });
+  check('コーディング: vibe/無料/品質重視/プライバシー重視/AI慣れ → Codexが1位', ranked[0].service.name === 'Codex');
+  check('コーディング: 同条件でCursorは1位にならない', ranked[0].service.name !== 'Cursor');
+
+  ranked = rankServices('coding', { q1: 'vibe', q2: 'B', q3: 'quality', q4: 'B', q5: 'A', q6: 'B' });
+  check('コーディング: vibe/月1000-3000円/品質重視/プライバシー重視/AI慣れ → Claude Codeが1位', ranked[0].service.name === 'Claude Code');
+  check('コーディング: 同条件でCursorは1位にならない', ranked[0].service.name !== 'Cursor');
+
+  ranked = rankServices('coding', { q1: 'autocomplete', q2: 'B', q3: 'quality', q4: 'B', q5: 'B', q6: 'B' });
+  check('コーディング: autocomplete/月1000-3000円/品質重視 → Cursorが1位(変化なし)', ranked[0].service.name === 'Cursor');
+
+  ranked = rankServices('llm', { q1: 'creative', q2: 'B', q3: 'longContext', q4: 'B', q5: 'A' });
+  check('LLM: creative/B予算/longContext重視/プライバシー気にしない/初心者 → Geminiが1位', ranked[0].service.name === 'Gemini');
+
+  ranked = rankServices('image', { q1: 'logo', q2: 'A', q3: 'japanese', q4: 'B' });
+  check('画像生成: logo/無料/日本語重視/個人利用 → ChatGPT/Geminiが1位(Recraftは1位にならない)', ['ChatGPT', 'Gemini'].indexOf(ranked[0].service.name) !== -1);
+
+  console.log('セルフテスト: ' + pass + ' pass / ' + fail + ' fail');
+}
+
+if (new URLSearchParams(location.search).get('test') === '1') runSelfTests();
+
+document.documentElement.style.setProperty('--nakano-avatar', 'url("' + NAKANO_IMG + '")');
+startChat();
+</script>
+</body>
+</html>
